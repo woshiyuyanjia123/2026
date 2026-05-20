@@ -26,43 +26,70 @@
           <section class="panel">
             <div class="panel-head">
               <div>
-                <p id="supplier-kicker" class="kicker"></p>
-                <h2 id="supplier-list-title"></h2>
+                <p id="participant-list-kicker" class="kicker"></p>
+                <h2 id="participant-list-title"></h2>
               </div>
             </div>
             <form id="china-filters" class="filter-bar">
               <select id="china-sector" name="sector"></select>
-              <select id="china-cert" name="cert"></select>
+              <select id="china-role" name="role"></select>
               <select id="china-market" name="market"></select>
             </form>
-            <div id="supplier-list" class="card-list"></div>
+            <div id="participant-list" class="card-list"></div>
           </section>
 
           <aside class="panel detail-panel">
             <div class="panel-head">
               <div>
-                <p id="supplier-detail-kicker" class="kicker"></p>
-                <h2 id="supplier-detail-title"></h2>
+                <p id="participant-detail-kicker" class="kicker"></p>
+                <h2 id="participant-detail-title"></h2>
               </div>
             </div>
-            <div id="supplier-detail"></div>
+            <div id="participant-detail"></div>
             <div class="subpanel">
               <div class="subpanel-head">
-                <h3 id="supplier-match-title"></h3>
+                <p id="role-fit-kicker" class="kicker"></p>
+                <h3 id="role-fit-title"></h3>
               </div>
-              <div id="supplier-match-list" class="mini-list"></div>
+              <div id="role-fit-list" class="mini-list"></div>
             </div>
             <div class="subpanel">
               <div class="subpanel-head">
-                <h3 id="china-shortlist-title"></h3>
+                <h3 id="shortlist-panel-title"></h3>
               </div>
-              <form id="china-shortlist-form" class="mini-form">
-                <textarea id="china-shortlist-note" rows="3"></textarea>
-                <button id="china-shortlist-button" class="primary-button" type="submit"></button>
-                <p id="china-shortlist-feedback" class="feedback"></p>
+              <form id="shortlist-form" class="mini-form">
+                <textarea id="shortlist-note" rows="3"></textarea>
+                <button id="shortlist-submit" class="primary-button" type="submit"></button>
+                <p id="shortlist-feedback" class="feedback"></p>
               </form>
             </div>
           </aside>
+        </section>
+
+        <section class="content-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p id="company-profiles-kicker" class="kicker"></p>
+                <h2 id="company-profiles-title"></h2>
+              </div>
+            </div>
+            <div id="company-profile-grid" class="company-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p id="visit-brief-kicker" class="kicker"></p>
+                <h2 id="visit-brief-title"></h2>
+              </div>
+            </div>
+            <div id="visit-brief-surface" class="signal-grid"></div>
+          </section>
+        </section>
+
+        <section class="panel">
+          <div id="langyan-surface"></div>
         </section>
       </main>
     </div>

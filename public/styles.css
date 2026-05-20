@@ -36,19 +36,26 @@ body {
 .content-grid,
 .stats-grid,
 .region-grid,
+.project-grid,
+.company-grid,
+.signal-grid,
 .card-list,
 .flow-steps,
 .tag-row,
 .meta-row,
 .meta-grid,
 .method-grid,
-.bar-list {
+.bar-list,
+.detail-columns,
+.summary-grid,
+.summary-stack,
+.mode-switch {
   display: grid;
   gap: 14px;
 }
 
 .topbar {
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   align-items: center;
   margin-bottom: 18px;
 }
@@ -58,6 +65,21 @@ body {
   text-decoration: none;
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+  margin-left: 12px;
+}
+
+.brand-copy strong {
+  font-size: 13px;
+}
+
+.brand-copy span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .nav-links,
@@ -195,6 +217,12 @@ body {
   grid-template-columns: 1.05fr 0.95fr;
 }
 
+.project-grid,
+.company-grid,
+.signal-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .filter-bar {
   display: flex;
   gap: 12px;
@@ -222,7 +250,11 @@ body {
 .match-card,
 .method-card,
 .mini-card,
-.region-card {
+.region-card,
+.project-card,
+.company-card,
+.signal-card,
+.summary-card {
   border-radius: 20px;
   padding: 16px;
 }
@@ -250,6 +282,53 @@ body {
 
 .meta-grid {
   margin: 14px 0;
+}
+
+.summary-grid {
+  grid-template-columns: repeat(2, 1fr);
+  margin: 16px 0;
+}
+
+.summary-card {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--line);
+}
+
+.summary-label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.summary-stack {
+  color: var(--muted);
+}
+
+.detail-headline {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detail-columns {
+  grid-template-columns: repeat(2, 1fr);
+  margin: 18px 0;
+}
+
+.detail-column,
+.method-surface {
+  display: grid;
+  gap: 12px;
+}
+
+.bullet-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.7;
 }
 
 .subpanel {
@@ -305,6 +384,43 @@ body {
   grid-template-columns: repeat(5, 1fr);
 }
 
+.mode-switch {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.mode-chip {
+  display: grid;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--ink);
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.mode-chip.active {
+  border-color: rgba(14, 107, 94, 0.34);
+  background: linear-gradient(180deg, rgba(14, 107, 94, 0.08), rgba(255, 255, 255, 0.94));
+}
+
+.compact-card p,
+.signal-card p {
+  margin: 0;
+}
+
+.mini-link {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.panel-head.compact {
+  margin-bottom: 14px;
+}
+
 .bar-list {
   margin-top: 14px;
 }
@@ -344,7 +460,17 @@ body {
   .hero,
   .content-grid,
   .method-grid,
-  .flow-steps {
+  .flow-steps,
+  .project-grid,
+  .company-grid,
+  .signal-grid,
+  .detail-columns,
+  .summary-grid,
+  .mode-switch {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
     grid-template-columns: 1fr;
   }
 }

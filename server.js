@@ -10,7 +10,7 @@ const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = path.join(ROOT, "data");
 const SEED_FILE = path.join(DATA_DIR, "demo-seed.json");
 const RUNTIME_FILE = path.join(DATA_DIR, "demo-runtime.json");
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 const COMPRESSIBLE_EXTENSIONS = new Set([".html", ".css", ".js", ".json", ".txt", ".svg"]);
 
 const MIME_TYPES = {
@@ -78,7 +78,6 @@ function maybeCompress(req, body, contentType, filePath) {
   if (!isCompressible(contentType, filePath) || buffer.length < 256) {
     return { body: buffer, encoding: null };
   }
-
   const acceptEncoding = String(req.headers["accept-encoding"] || "");
   if (acceptEncoding.includes("br")) {
     return { body: zlib.brotliCompressSync(buffer), encoding: "br" };
@@ -97,42 +96,23 @@ function sendBody(req, res, statusCode, body, contentType, headers = {}, filePat
     Vary: "Accept-Encoding",
     ...headers
   };
-
   if (compressed.encoding) {
     finalHeaders["Content-Encoding"] = compressed.encoding;
   }
-
   res.writeHead(statusCode, finalHeaders);
   res.end(compressed.body);
 }
 
 function sendJson(req, res, statusCode, payload, headers = {}) {
-  sendBody(
-    req,
-    res,
-    statusCode,
-    JSON.stringify(payload),
-    "application/json; charset=utf-8",
-    { "Cache-Control": "no-store", ...headers }
-  );
+  sendBody(req, res, statusCode, JSON.stringify(payload), "application/json; charset=utf-8", { "Cache-Control": "no-store", ...headers });
 }
 
 function sendText(req, res, statusCode, text, headers = {}) {
-  sendBody(
-    req,
-    res,
-    statusCode,
-    text,
-    "text/plain; charset=utf-8",
-    { "Cache-Control": "no-store", ...headers }
-  );
+  sendBody(req, res, statusCode, text, "text/plain; charset=utf-8", { "Cache-Control": "no-store", ...headers });
 }
 
 function redirect(res, location) {
-  res.writeHead(302, {
-    Location: location,
-    "Cache-Control": "no-store"
-  });
+  res.writeHead(302, { Location: location, "Cache-Control": "no-store" });
   res.end();
 }
 
@@ -180,10 +160,11 @@ function t(value, lang) {
   if (value && typeof value === "object" && !Array.isArray(value) && ("zh" in value || "en" in value)) {
     return value[lang] || value.en || value.zh || "";
   }
-  return value;
+  return value ?? "";
 }
 
 function localizeLookup(seed, group, key, lang) {
+  if (!key) return "";
   return t(seed.lookups[group][key], lang);
 }
 
@@ -192,9 +173,116 @@ function overlapCount(a, b) {
   return (a || []).filter(item => setB.has(String(item).toLowerCase())).length;
 }
 
+function uniqueById(items) {
+  const seen = new Set();
+  return items.filter(item => {
+    if (!item || !item.id || seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function buildCountryToRegion(seed) {
+  const mapping = {};
+  seed.africaRegions.forEach(region => {
+    region.countryKeys.forEach(countryKey => {
+      mapping[countryKey] = region.key;
+    });
+  });
+  return mapping;
+}
+
+const countryToRegion = buildCountryToRegion(seedData);
+
+function indexById(collection) {
+  return Object.fromEntries(collection.map(item => [item.id, item]));
+}
+
+const projectMap = indexById(seedData.projects);
+const companyMap = indexById(seedData.companies);
+const visitBriefMap = indexById(seedData.visitBriefs);
+const tenderMap = indexById(seedData.tenders);
+const supplierMap = indexById(seedData.suppliers);
+
+function buildLangyanMethod(lang) {
+  return {
+    title: lang === "zh" ? "朗言协同方式" : "Langyan Collaboration Layer",
+    items: [
+      {
+        title: lang === "zh" ? "知识库层" : "Knowledge Layer",
+        text: lang === "zh"
+          ? "按公共通用库、业务专属库、涉密资源库分层，案例内容脱敏后沉淀到知识侧。"
+          : "Organized into public, business, and sensitive layers, with only sanitized content entering the knowledge side."
+      },
+      {
+        title: lang === "zh" ? "CRM 协同层" : "CRM Layer",
+        text: lang === "zh"
+          ? "在销售线索、项目跟进和带团场景中主动推送案例、模板和检查清单。"
+          : "Pushes cases, templates, and checklists directly into sales follow-up, project tracking, and delegation workflows."
+      },
+      {
+        title: lang === "zh" ? "合规与审批" : "Compliance & Approval",
+        text: lang === "zh"
+          ? "客户敏感信息留在 CRM，知识库只保留脱敏经验，报价和合同前触发合规拦截。"
+          : "Sensitive client data stays inside CRM; the knowledge layer stays sanitized while compliance gates trigger before quote or contract."
+      }
+    ]
+  };
+}
+
+function localizeProject(seed, project, lang) {
+  if (!project) return null;
+  return {
+    id: project.id,
+    name: t(project.name, lang),
+    location: t(project.location, lang),
+    projectType: project.projectType,
+    projectTypeLabel: localizeLookup(seed, "sectors", project.projectType, lang),
+    capacityText: t(project.capacityText, lang),
+    investmentAmount: t(project.investmentAmount, lang),
+    timeline: t(project.timeline, lang),
+    advantages: (project.advantages || []).map(item => t(item, lang)),
+    revenueModel: (project.revenueModel || []).map(item => t(item, lang)),
+    risks: (project.risks || []).map(item => t(item, lang)),
+    relatedCompanyIds: project.relatedCompanyIds || []
+  };
+}
+
+function localizeCompany(seed, company, lang) {
+  if (!company) return null;
+  return {
+    id: company.id,
+    name: t(company.name, lang),
+    companyType: company.companyType,
+    companyTypeLabel: localizeLookup(seed, "companyTypes", company.companyType, lang),
+    country: company.country,
+    summary: t(company.summary, lang),
+    highlights: (company.highlights || []).map(item => t(item, lang)),
+    capabilities: (company.capabilities || []).map(item => t(item, lang)),
+    signals: (company.signals || []).map(item => t(item, lang))
+  };
+}
+
+function localizeVisitBrief(visitBrief, lang) {
+  if (!visitBrief) return null;
+  return {
+    id: visitBrief.id,
+    companyId: visitBrief.companyId,
+    visitGoals: (visitBrief.visitGoals || []).map(item => t(item, lang)),
+    decisionMakers: visitBrief.decisionMakers || [],
+    productFocus: t(visitBrief.productFocus, lang),
+    coopSignals: (visitBrief.coopSignals || []).map(item => t(item, lang))
+  };
+}
+
 function localizeTender(seed, tender, lang) {
+  const project = projectMap[tender.projectId];
+  const ownerCompany = companyMap[tender.ownerCompanyId];
   return {
     id: tender.id,
+    projectId: tender.projectId,
+    ownerCompanyId: tender.ownerCompanyId,
+    mode: tender.mode,
     countryKey: tender.countryKey,
     regionKey: tender.regionKey,
     sectorKey: tender.sectorKey,
@@ -210,105 +298,193 @@ function localizeTender(seed, tender, lang) {
     language: tender.language,
     targetLeadDays: tender.targetLeadDays,
     requiredMonthlyCapacity: tender.requiredMonthlyCapacity,
-    certificationsRequired: tender.certificationsRequired,
-    keywords: tender.keywords.map(item => t(item, lang)),
-    highlights: tender.highlights.map(item => t(item, lang)),
-    lots: tender.lots.map(item => t(item, lang))
+    certificationsRequired: tender.certificationsRequired || [],
+    keywords: (tender.keywords || []).map(item => t(item, lang)),
+    keywordKeys: tender.keywordKeys || [],
+    highlights: (tender.highlights || []).map(item => t(item, lang)),
+    lots: (tender.lots || []).map(item => t(item, lang)),
+    qualificationRequirements: (tender.qualificationRequirements || []).map(item => t(item, lang)),
+    commercialTerms: (tender.commercialTerms || []).map(item => t(item, lang)),
+    project: localizeProject(seed, project, lang),
+    ownerCompany: localizeCompany(seed, ownerCompany, lang)
   };
 }
 
 function localizeSupplier(seed, supplier, lang) {
+  const company = companyMap[supplier.companyId];
+  const visitBrief = supplier.visitBriefId ? visitBriefMap[supplier.visitBriefId] : null;
   return {
     id: supplier.id,
+    companyId: supplier.companyId,
+    roleType: supplier.roleType,
+    roleLabel: localizeLookup(seed, "roleTypes", supplier.roleType, lang),
     company: t(supplier.company, lang),
     companyShort: t(supplier.companyShort, lang),
     city: t(supplier.city, lang),
     province: t(supplier.province, lang),
-    sectors: supplier.sectorKeys.map(key => ({
+    sectors: (supplier.sectorKeys || []).map(key => ({
       key,
       label: localizeLookup(seed, "sectors", key, lang)
     })),
-    certifications: supplier.certifications,
+    sectorKeys: supplier.sectorKeys || [],
+    certifications: supplier.certifications || [],
     monthlyCapacity: supplier.monthlyCapacity,
     leadDays: supplier.leadDays,
     responseHours: supplier.responseHours,
-    languages: supplier.languages,
-    africaMarkets: supplier.africaMarketKeys.map(key => localizeLookup(seed, "countries", key, lang)),
-    africaRegions: supplier.africaRegionKeys.map(key => localizeLookup(seed, "regions", key, lang)),
+    languages: supplier.languages || [],
+    africaMarkets: (supplier.africaMarketKeys || []).map(key => localizeLookup(seed, "countries", key, lang)),
+    africaRegions: (supplier.africaRegionKeys || []).map(key => localizeLookup(seed, "regions", key, lang)),
+    africaMarketKeys: supplier.africaMarketKeys || [],
+    africaRegionKeys: supplier.africaRegionKeys || [],
     productFocus: t(supplier.productFocus, lang),
-    verifiedTags: supplier.verifiedTagKeys.map(key => localizeLookup(seed, "verifiedTags", key, lang)),
+    verifiedTags: (supplier.verifiedTagKeys || []).map(key => localizeLookup(seed, "verifiedTags", key, lang)),
+    verifiedTagKeys: supplier.verifiedTagKeys || [],
     exportYears: supplier.exportYears,
-    keywords: supplier.keywords,
-    scoreHint: t(supplier.scoreHint, lang)
+    keywords: supplier.keywords || [],
+    keywordKeys: supplier.keywordKeys || [],
+    scoreHint: t(supplier.scoreHint, lang),
+    experienceCases: (supplier.experienceCases || []).map(item => t(item, lang)),
+    companyProfile: localizeCompany(seed, company, lang),
+    visitBrief: localizeVisitBrief(visitBrief, lang)
   };
 }
 
-function buildCountryToRegion(seed) {
-  const mapping = {};
-  seed.africaRegions.forEach(region => {
-    region.countryKeys.forEach(countryKey => {
-      mapping[countryKey] = region.key;
-    });
-  });
-  return mapping;
+function normalizeRatio(score, max) {
+  if (max <= 0) return 0;
+  return Math.max(0, Math.min(1, score / max));
 }
 
-function computeMatch(seed, tender, supplier, lang) {
-  const exactSector = supplier.sectorKeys.includes(tender.sectorKey);
-  const keywordOverlap = overlapCount(tender.keywordKeys, supplier.keywordKeys);
-  const sectorScore = exactSector ? 35 : Math.min(22, keywordOverlap * 7);
+function computeTenderScores(tender, supplier, lang) {
+  const roleBoost = {
+    epc: 22,
+    grid: 20,
+    compute: 18,
+    ecosystem: 10
+  }[supplier.roleType] || 8;
+  let sectorRaw = roleBoost;
+  if ((supplier.sectorKeys || []).includes(tender.sectorKey)) sectorRaw += 8;
+  sectorRaw += Math.min(6, overlapCount(tender.keywordKeys, supplier.keywordKeys) * 2);
+  const sectorScore = Math.min(32, sectorRaw);
 
   const certMatches = overlapCount(tender.certificationsRequired, supplier.certifications);
-  const certScore = tender.certificationsRequired.length
-    ? Math.round((certMatches / tender.certificationsRequired.length) * 25)
-    : 25;
+  const certBase = tender.certificationsRequired.length
+    ? (certMatches / tender.certificationsRequired.length) * 18
+    : 10;
+  let certRaw = certBase;
+  if ((supplier.verifiedTagKeys || []).includes("epc_track")) certRaw += 4;
+  if ((supplier.verifiedTagKeys || []).includes("solution_depth")) certRaw += 2;
+  const certScore = Math.min(24, Math.round(certRaw));
 
-  let capacityScore = 0;
-  capacityScore += Math.round(Math.min(1, supplier.monthlyCapacity / tender.requiredMonthlyCapacity) * 12);
+  let capacityRaw = normalizeRatio(supplier.monthlyCapacity, tender.requiredMonthlyCapacity) * 12;
   const leadGap = tender.targetLeadDays - supplier.leadDays;
-  if (leadGap >= 0) capacityScore += 8;
-  else if (leadGap >= -10) capacityScore += 5;
-  else if (leadGap >= -20) capacityScore += 2;
+  if (leadGap >= 0) capacityRaw += 6;
+  else if (leadGap >= -15) capacityRaw += 4;
+  else if (leadGap >= -30) capacityRaw += 2;
+  if (supplier.roleType === "epc" || supplier.roleType === "grid") capacityRaw += 2;
+  const capacityScore = Math.min(20, Math.round(capacityRaw));
 
-  const regionMap = buildCountryToRegion(seed);
-  const targetRegionKey = regionMap[tender.countryKey];
-  let marketScore = 0;
-  if (supplier.africaMarketKeys.includes(tender.countryKey)) marketScore = 10;
-  else if (supplier.africaRegionKeys.includes(targetRegionKey)) marketScore = 7;
-  else if (supplier.africaMarketKeys.length >= 3) marketScore = 4;
+  let marketRaw = 0;
+  if ((supplier.africaMarketKeys || []).includes(tender.countryKey)) marketRaw += 9;
+  else if ((supplier.africaRegionKeys || []).includes(countryToRegion[tender.countryKey])) marketRaw += 7;
+  else if ((supplier.africaRegionKeys || []).includes(tender.regionKey)) marketRaw += 6;
+  if ((supplier.verifiedTagKeys || []).includes("epc_track")) marketRaw += 2;
+  const marketScore = Math.min(14, Math.round(marketRaw));
 
-  let opsScore = 0;
-  if (supplier.languages.includes(tender.language)) opsScore += 4;
-  if (supplier.responseHours <= 8) opsScore += 3;
-  else if (supplier.responseHours <= 24) opsScore += 2;
-  if (supplier.verifiedTagKeys.includes("factory_audit")) opsScore += 2;
-  if (supplier.verifiedTagKeys.includes("oem_odm")) opsScore += 1;
+  let opsRaw = 0;
+  if ((supplier.languages || []).includes(tender.language)) opsRaw += 3;
+  if (supplier.responseHours <= 8) opsRaw += 3;
+  else if (supplier.responseHours <= 24) opsRaw += 2;
+  if ((supplier.verifiedTagKeys || []).includes("crm_ready")) opsRaw += 2;
+  if ((supplier.verifiedTagKeys || []).includes("solution_depth")) opsRaw += 2;
+  const opsScore = Math.min(10, opsRaw);
 
-  const totalScore = Math.min(100, sectorScore + certScore + capacityScore + marketScore + opsScore);
   const reasons = [];
-  if (exactSector) reasons.push(lang === "zh" ? "行业完全匹配" : "Exact sector fit");
-  if (certMatches) reasons.push(lang === "zh" ? `认证命中 ${certMatches}/${tender.certificationsRequired.length}` : `Certification hit ${certMatches}/${tender.certificationsRequired.length}`);
-  if (supplier.monthlyCapacity >= tender.requiredMonthlyCapacity) reasons.push(lang === "zh" ? "产能满足项目规模" : "Capacity meets tender volume");
-  if (supplier.leadDays <= tender.targetLeadDays) reasons.push(lang === "zh" ? "交付周期可控" : "Lead time within target");
-  if (supplier.africaMarketKeys.includes(tender.countryKey)) reasons.push(lang === "zh" ? "有该国履约经验" : "Delivery track record in target country");
-  else if (supplier.africaRegionKeys.includes(targetRegionKey)) reasons.push(lang === "zh" ? "有该区域履约经验" : "Delivery track record in target region");
-  if (supplier.languages.includes(tender.language)) reasons.push(lang === "zh" ? `支持 ${tender.language} 商务材料` : `${tender.language} documentation support`);
+  reasons.push(lang === "zh" ? `角色适配：${supplier.roleType === "epc" ? "EPC 总包" : supplier.roleType === "grid" ? "变电站/电力" : supplier.roleType === "compute" ? "算力基础设施" : "生态合作"}` : `Role fit: ${supplier.roleType}`);
+  if (certMatches > 0) {
+    reasons.push(lang === "zh" ? `资质命中 ${certMatches}/${tender.certificationsRequired.length}` : `Credentials hit ${certMatches}/${tender.certificationsRequired.length}`);
+  }
+  if (supplier.monthlyCapacity >= tender.requiredMonthlyCapacity) {
+    reasons.push(lang === "zh" ? "产能覆盖当前项目规模" : "Delivery capacity covers the active project scope");
+  }
+  if (supplier.leadDays <= tender.targetLeadDays) {
+    reasons.push(lang === "zh" ? "交付节奏可落入招标窗口" : "Lead time stays inside the tender execution window");
+  }
+  if ((supplier.africaMarketKeys || []).includes(tender.countryKey) || (supplier.africaRegionKeys || []).includes(tender.regionKey)) {
+    reasons.push(lang === "zh" ? "已有目标区域项目经验" : "Relevant regional execution track record");
+  }
+  if ((supplier.verifiedTagKeys || []).includes("crm_ready")) {
+    reasons.push(lang === "zh" ? "可直接进入 CRM 协同跟进" : "Ready for CRM-led follow-up");
+  }
 
   return {
-    totalScore,
-    breakdown: {
-      sectorScore,
-      certScore,
-      capacityScore,
-      marketScore,
-      opsScore
-    },
+    totalScore: sectorScore + certScore + capacityScore + marketScore + opsScore,
+    breakdown: { sectorScore, certScore, capacityScore, marketScore, opsScore },
     reasons
   };
 }
 
+function computeInvestmentScores(tender, supplier, lang) {
+  let sectorRaw = 8;
+  if ((supplier.sectorKeys || []).includes("solar_storage")) sectorRaw += 12;
+  if (supplier.roleType === "ecosystem") sectorRaw += 10;
+  if (supplier.roleType === "epc") sectorRaw += 7;
+  sectorRaw += Math.min(4, overlapCount(tender.keywordKeys, supplier.keywordKeys) * 2);
+  const sectorScore = Math.min(32, Math.round(sectorRaw));
+
+  let certRaw = 8 + overlapCount(tender.certificationsRequired, supplier.certifications) * 4;
+  if ((supplier.verifiedTagKeys || []).includes("investment_ready")) certRaw += 8;
+  if ((supplier.verifiedTagKeys || []).includes("solution_depth")) certRaw += 4;
+  const certScore = Math.min(24, Math.round(certRaw));
+
+  let capacityRaw = normalizeRatio(supplier.monthlyCapacity, tender.requiredMonthlyCapacity) * 8;
+  if (supplier.exportYears >= 10) capacityRaw += 4;
+  if (supplier.roleType === "ecosystem") capacityRaw += 5;
+  if (supplier.roleType === "epc") capacityRaw += 3;
+  const capacityScore = Math.min(20, Math.round(capacityRaw));
+
+  let marketRaw = 0;
+  if ((supplier.africaMarketKeys || []).includes(tender.countryKey)) marketRaw += 9;
+  else if ((supplier.africaRegionKeys || []).includes(tender.regionKey)) marketRaw += 6;
+  if ((supplier.verifiedTagKeys || []).includes("investment_ready")) marketRaw += 3;
+  const marketScore = Math.min(14, Math.round(marketRaw));
+
+  let opsRaw = 0;
+  if ((supplier.languages || []).includes(tender.language)) opsRaw += 2;
+  if (supplier.responseHours <= 12) opsRaw += 3;
+  if ((supplier.verifiedTagKeys || []).includes("crm_ready")) opsRaw += 2;
+  if (supplier.visitBriefId) opsRaw += 3;
+  const opsScore = Math.min(10, Math.round(opsRaw));
+
+  const reasons = [];
+  reasons.push(lang === "zh" ? "合作逻辑：更看重投资就绪度与生态协同" : "Investment mode prioritizes readiness and collaboration logic");
+  if ((supplier.verifiedTagKeys || []).includes("investment_ready")) {
+    reasons.push(lang === "zh" ? "具备投资合作就绪标签" : "Carries an investment-ready signal");
+  }
+  if (supplier.visitBriefId) {
+    reasons.push(lang === "zh" ? "可衔接拜访与联合推进场景" : "Can connect into visit-based co-development workflows");
+  }
+  if ((supplier.africaMarketKeys || []).includes(tender.countryKey) || (supplier.africaRegionKeys || []).includes(tender.regionKey)) {
+    reasons.push(lang === "zh" ? "具备西非或目标市场协同经验" : "Shows regional collaboration readiness");
+  }
+  if ((supplier.verifiedTagKeys || []).includes("crm_ready")) {
+    reasons.push(lang === "zh" ? "适合沉淀为 CRM 协同线索" : "Easy to operationalize through CRM follow-up");
+  }
+
+  return {
+    totalScore: sectorScore + certScore + capacityScore + marketScore + opsScore,
+    breakdown: { sectorScore, certScore, capacityScore, marketScore, opsScore },
+    reasons
+  };
+}
+
+function computeMatch(seed, tender, supplier, lang) {
+  return tender.mode === "investment"
+    ? computeInvestmentScores(tender, supplier, lang)
+    : computeTenderScores(tender, supplier, lang);
+}
+
 function buildMatches(seed, tenderId, lang) {
-  const tender = seed.tenders.find(item => item.id === tenderId) || seed.tenders[0];
+  const tender = tenderMap[tenderId] || seed.tenders[0];
   return seed.suppliers
     .map(supplier => ({
       supplier: localizeSupplier(seed, supplier, lang),
@@ -318,22 +494,33 @@ function buildMatches(seed, tenderId, lang) {
 }
 
 function buildSupplierTenderMatches(seed, supplierId, lang) {
-  const supplier = seed.suppliers.find(item => item.id === supplierId) || seed.suppliers[0];
+  const supplier = supplierMap[supplierId] || seed.suppliers[0];
   return seed.tenders
     .map(tender => ({
       tender: localizeTender(seed, tender, lang),
       score: computeMatch(seed, tender, supplier, lang)
     }))
-    .sort((a, b) => b.score.totalScore - a.score.totalScore)
-    .slice(0, 4);
+    .sort((a, b) => b.score.totalScore - a.score.totalScore);
 }
 
 function localizedStats(seed, runtime, lang) {
   return [
-    { label: lang === "zh" ? "活跃非洲招标" : "Active African Tenders", value: seed.tenders.length },
-    { label: lang === "zh" ? "中国认证供应商" : "Verified China Suppliers", value: seed.suppliers.length },
-    { label: lang === "zh" ? "自动匹配规则" : "Matching Rules", value: seed.matchingMethod.length },
-    { label: lang === "zh" ? "已保存意向" : "Saved Shortlists", value: runtime.shortlists.length }
+    {
+      label: lang === "zh" ? "机会项目" : "Live Opportunities",
+      value: seed.tenders.length
+    },
+    {
+      label: lang === "zh" ? "中国参与方" : "China Participants",
+      value: seed.suppliers.length
+    },
+    {
+      label: lang === "zh" ? "重点公司画像" : "Company Profiles",
+      value: seed.companies.length
+    },
+    {
+      label: lang === "zh" ? "已保存意向" : "Saved Shortlists",
+      value: runtime.shortlists.length
+    }
   ];
 }
 
@@ -363,14 +550,25 @@ function buildAfricaPayload(seed, runtime, params) {
   const region = params.region || "";
   const country = params.country || "";
   const sector = params.sector || "";
+  const mode = params.mode || "";
+
   const filtered = seed.tenders.filter(tender => {
     if (region && tender.regionKey !== region) return false;
     if (country && tender.countryKey !== country) return false;
     if (sector && tender.sectorKey !== sector) return false;
+    if (mode && tender.mode !== mode) return false;
     return true;
   });
+
   const activeTenderId = params.tenderId || runtime.lastTenderId || filtered[0]?.id || seed.tenders[0].id;
-  const activeTender = seed.tenders.find(item => item.id === activeTenderId) || filtered[0] || seed.tenders[0];
+  const activeTender = tenderMap[activeTenderId] || filtered[0] || seed.tenders[0];
+  const featuredProjects = uniqueById(seed.projects.map(project => localizeProject(seed, project, lang)));
+  const featuredCompanies = uniqueById([
+    localizeCompany(seed, companyMap[activeTender.ownerCompanyId], lang),
+    ...seed.projects
+      .flatMap(project => project.relatedCompanyIds || [])
+      .map(id => localizeCompany(seed, companyMap[id], lang))
+  ]).slice(0, 6);
 
   return {
     lang,
@@ -389,32 +587,58 @@ function buildAfricaPayload(seed, runtime, params) {
       region,
       country,
       sector,
+      mode,
       regions: seed.africaRegions.map(item => ({ key: item.key, label: t(item.name, lang) })),
-      countries: Object.entries(seed.lookups.countries).map(([key, value]) => ({ key, label: t(value, lang) })),
-      sectors: Object.entries(seed.lookups.sectors).map(([key, value]) => ({ key, label: t(value, lang) }))
+      countries: Object.entries(seed.lookups.countries)
+        .filter(([key]) => key !== "china")
+        .map(([key, value]) => ({ key, label: t(value, lang) })),
+      sectors: Object.entries(seed.lookups.sectors)
+        .filter(([key]) => key !== "charging_robotics")
+        .map(([key, value]) => ({ key, label: t(value, lang) })),
+      modes: [
+        { key: "tender", label: lang === "zh" ? "招标参与" : "Tender" },
+        { key: "investment", label: lang === "zh" ? "投资合作" : "Investment" }
+      ]
     },
     tenders: filtered.map(tender => localizeTender(seed, tender, lang)),
-    activeTender: localizeTender(seed, activeTender, lang)
+    activeTender: localizeTender(seed, activeTender, lang),
+    featuredProjects,
+    featuredCompanies,
+    tenderSections: {
+      lots: localizeTender(seed, activeTender, lang).lots,
+      qualificationRequirements: localizeTender(seed, activeTender, lang).qualificationRequirements,
+      commercialTerms: localizeTender(seed, activeTender, lang).commercialTerms
+    }
   };
 }
 
 function buildChinaPayload(seed, runtime, params) {
   const lang = pickLang(params.lang, "zh");
   const sector = params.sector || "";
-  const cert = params.cert || "";
+  const role = params.role || "";
   const market = params.market || "";
   const tenderId = params.tenderId || runtime.lastTenderId || seed.tenders[0].id;
 
   const filtered = seed.suppliers.filter(supplier => {
-    if (sector && !supplier.sectorKeys.includes(sector)) return false;
-    if (cert && !supplier.certifications.includes(cert)) return false;
-    if (market && !supplier.africaMarketKeys.includes(market) && !supplier.africaRegionKeys.includes(market)) return false;
+    if (sector && !(supplier.sectorKeys || []).includes(sector)) return false;
+    if (role && supplier.roleType !== role) return false;
+    if (market && !(supplier.africaMarketKeys || []).includes(market) && !(supplier.africaRegionKeys || []).includes(market)) return false;
     return true;
   });
 
   const supplierId = params.supplierId || runtime.lastSupplierId || filtered[0]?.id || seed.suppliers[0].id;
-  const activeSupplier = seed.suppliers.find(item => item.id === supplierId) || filtered[0] || seed.suppliers[0];
-  const activeTender = seed.tenders.find(item => item.id === tenderId) || seed.tenders[0];
+  const activeSupplier = supplierMap[supplierId] || filtered[0] || seed.suppliers[0];
+  const activeTender = tenderMap[tenderId] || seed.tenders[0];
+  const localizedActiveSupplier = localizeSupplier(seed, activeSupplier, lang);
+  const matches = buildSupplierTenderMatches(seed, activeSupplier.id, lang);
+  const topRoleFits = matches.slice(0, 3).map(item => ({
+    tenderId: item.tender.id,
+    title: item.tender.title,
+    score: item.score.totalScore,
+    mode: item.tender.mode,
+    projectName: item.tender.project ? item.tender.project.name : "",
+    explanation: item.score.reasons.slice(0, 2)
+  }));
 
   return {
     lang,
@@ -430,27 +654,57 @@ function buildChinaPayload(seed, runtime, params) {
     stats: localizedStats(seed, runtime, lang),
     filters: {
       sector,
-      cert,
+      role,
       market,
       sectors: Object.entries(seed.lookups.sectors).map(([key, value]) => ({ key, label: t(value, lang) })),
-      certifications: seed.lookups.certifications,
+      roles: Object.entries(seed.lookups.roleTypes).map(([key, value]) => ({ key, label: t(value, lang) })),
       markets: [
-        ...seed.africaRegions.map(region => ({ key: region.key, label: t(region.name, lang) })),
-        ...Object.entries(seed.lookups.countries).map(([key, value]) => ({ key, label: t(value, lang) }))
+        ...seed.africaRegions.map(item => ({ key: item.key, label: t(item.name, lang) })),
+        ...Object.entries(seed.lookups.countries)
+          .filter(([key]) => key !== "china")
+          .map(([key, value]) => ({ key, label: t(value, lang) }))
       ]
     },
     suppliers: filtered.map(supplier => localizeSupplier(seed, supplier, lang)),
-    activeSupplier: localizeSupplier(seed, activeSupplier, lang),
-    supplierTenderMatches: buildSupplierTenderMatches(seed, activeSupplier.id, lang),
+    activeSupplier: localizedActiveSupplier,
     activeTender: localizeTender(seed, activeTender, lang),
-    currentTenderScore: computeMatch(seed, activeTender, activeSupplier, lang)
+    companyProfiles: uniqueById([
+      localizedActiveSupplier.companyProfile,
+      ...seed.companies
+        .filter(company => company.companyType === "target_client" || company.companyType === "supplier")
+        .map(company => localizeCompany(seed, company, lang))
+    ]).slice(0, 4),
+    visitBrief: localizedActiveSupplier.visitBrief,
+    supplierTenderMatches: matches,
+    roleFitSummary: {
+      title: lang === "zh" ? "项目角色适配摘要" : "Role Fit Summary",
+      items: topRoleFits
+    },
+    currentTenderScore: computeMatch(seed, activeTender, activeSupplier, lang),
+    langyanMethod: buildLangyanMethod(lang)
   };
 }
 
 function buildMatchPayload(seed, runtime, params) {
   const lang = pickLang(params.lang, "en");
-  const tenderId = params.tenderId || runtime.lastTenderId || seed.tenders[0].id;
-  const activeTender = seed.tenders.find(item => item.id === tenderId) || seed.tenders[0];
+  const requestedMode = params.mode || "";
+  const seedTender = requestedMode
+    ? seed.tenders.find(item => item.mode === requestedMode) || seed.tenders[0]
+    : seed.tenders[0];
+  const tenderId = params.tenderId || runtime.lastTenderId || seedTender.id;
+  const activeTender = tenderMap[tenderId] || seedTender;
+  const localizedTender = localizeTender(seed, activeTender, lang);
+  const relatedProject = localizedTender.project;
+  const relatedCompanies = uniqueById([
+    localizedTender.ownerCompany,
+    ...(relatedProject?.relatedCompanyIds || []).map(id => localizeCompany(seed, companyMap[id], lang))
+  ]);
+  const matches = buildMatches(seed, activeTender.id, lang);
+  const recommendationReasons = matches.slice(0, 3).map(item => ({
+    supplierId: item.supplier.id,
+    supplierName: item.supplier.company,
+    reasons: item.score.reasons
+  }));
 
   return {
     lang,
@@ -464,42 +718,57 @@ function buildMatchPayload(seed, runtime, params) {
       text: t(seed.overview.match.text, lang)
     },
     stats: localizedStats(seed, runtime, lang),
-    activeTender: localizeTender(seed, activeTender, lang),
+    activeTender: localizedTender,
+    mode: activeTender.mode,
+    opportunities: seed.tenders.map(tender => ({
+      id: tender.id,
+      projectId: tender.projectId,
+      mode: tender.mode,
+      title: t(tender.title, lang)
+    })),
     matchingMethod: localizedMatchingMethod(seed, lang),
-    matches: buildMatches(seed, activeTender.id, lang),
+    matches,
+    relatedProject,
+    relatedCompanies,
+    recommendationReasons,
     shortlists: runtime.shortlists.map(item => {
-      const tender = seed.tenders.find(entry => entry.id === item.tenderId);
-      const supplier = seed.suppliers.find(entry => entry.id === item.supplierId);
+      const tender = tenderMap[item.tenderId];
+      const supplier = supplierMap[item.supplierId];
+      const project = item.projectId ? projectMap[item.projectId] : tender ? projectMap[tender.projectId] : null;
       return {
         id: item.id,
         tenderId: item.tenderId,
         supplierId: item.supplierId,
+        projectId: item.projectId || tender?.projectId || null,
+        mode: item.mode || tender?.mode || "tender",
         tenderTitle: tender ? t(tender.title, lang) : item.tenderTitle,
         supplierName: supplier ? t(supplier.company, lang) : item.supplierName,
+        projectName: project ? t(project.name, lang) : "",
         score: item.score,
         note: item.note,
         createdAt: item.createdAt
       };
-    })
+    }),
+    langyanMethod: buildLangyanMethod(lang)
   };
 }
 
 function appendShortlist(seed, runtime, body) {
-  const tender = seed.tenders.find(item => item.id === body.tenderId);
-  const supplier = seed.suppliers.find(item => item.id === body.supplierId);
+  const tender = tenderMap[body.tenderId];
+  const supplier = supplierMap[body.supplierId];
   if (!tender || !supplier) {
     throw new Error("Tender or supplier not found");
   }
-
   const record = {
     id: `sl-${Date.now()}`,
     tenderId: tender.id,
     supplierId: supplier.id,
+    projectId: body.projectId || tender.projectId,
+    mode: body.mode || tender.mode,
     note: body.note || "",
     score: computeMatch(seed, tender, supplier, "en").totalScore,
     createdAt: new Date().toISOString()
   };
-
   runtime.shortlists.unshift(record);
   runtime.shortlists = runtime.shortlists.slice(0, 20);
   runtime.lastTenderId = tender.id;
@@ -521,9 +790,7 @@ function serveNamedPage(req, res, fileName) {
 function resolvePublicFile(pathname) {
   const relativePath = path.normalize(pathname.replace(/^\/+/, ""));
   const filePath = path.join(PUBLIC_DIR, relativePath);
-  if (!filePath.startsWith(PUBLIC_DIR)) {
-    return null;
-  }
+  if (!filePath.startsWith(PUBLIC_DIR)) return null;
   return filePath;
 }
 
@@ -618,7 +885,7 @@ function requestHandler(req, res) {
 const server = http.createServer(requestHandler);
 
 server.listen(PORT, () => {
-  console.log(`[startup] dual-site sourcing demo listening on port ${PORT}`);
+  console.log(`[startup] cross-border energy project demo listening on port ${PORT}`);
 });
 
 process.on("SIGTERM", () => {

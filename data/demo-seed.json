@@ -1,540 +1,821 @@
 {
   "meta": {
     "platformTitle": {
-      "zh": "双站双语招投标平台 Demo",
-      "en": "Dual-Site Bilingual Tender Demo"
+      "zh": "跨境能源项目情报与匹配平台 Demo",
+      "en": "Cross-border Energy Project Intelligence Platform"
     },
     "platformSubtitle": {
-      "zh": "非洲招标站、中国供应站与匹配模拟共用同一后端",
-      "en": "Africa tenders, China suppliers and matching simulator on one shared backend"
+      "zh": "以新能源项目招投标、投融资和 CRM 协同为主线的双站双语演示平台",
+      "en": "A bilingual demo for energy project tenders, investment intelligence, and CRM-enabled delivery"
     }
   },
   "lookups": {
     "regions": {
-      "east_africa": { "zh": "东非", "en": "East Africa" },
+      "southeast_asia": { "zh": "东南亚", "en": "Southeast Asia" },
       "west_africa": { "zh": "西非", "en": "West Africa" },
-      "north_africa": { "zh": "北非", "en": "North Africa" }
+      "china": { "zh": "中国", "en": "China" }
     },
     "countries": {
-      "kenya": { "zh": "肯尼亚", "en": "Kenya" },
-      "tanzania": { "zh": "坦桑尼亚", "en": "Tanzania" },
-      "uganda": { "zh": "乌干达", "en": "Uganda" },
+      "indonesia": { "zh": "印度尼西亚", "en": "Indonesia" },
       "nigeria": { "zh": "尼日利亚", "en": "Nigeria" },
-      "ghana": { "zh": "加纳", "en": "Ghana" },
-      "cote_divoire": { "zh": "科特迪瓦", "en": "Cote d'Ivoire" },
-      "egypt": { "zh": "埃及", "en": "Egypt" },
-      "morocco": { "zh": "摩洛哥", "en": "Morocco" },
-      "algeria": { "zh": "阿尔及利亚", "en": "Algeria" }
+      "china": { "zh": "中国", "en": "China" }
     },
     "sectors": {
-      "solar_equipment": { "zh": "光伏设备", "en": "Solar Equipment" },
-      "industrial_pumps": { "zh": "工业泵系统", "en": "Industrial Pumps" },
-      "transformers": { "zh": "变压器与配电设备", "en": "Transformers" },
-      "packaging_machinery": { "zh": "包装机械", "en": "Packaging Machinery" }
+      "integrated_energy": { "zh": "综合能源基础设施", "en": "Integrated Energy Infrastructure" },
+      "solar_storage": { "zh": "光伏储能", "en": "Solar + Storage" },
+      "epc": { "zh": "EPC 总包", "en": "EPC Contracting" },
+      "substation": { "zh": "变电站与配电", "en": "Substation & Grid" },
+      "data_center": { "zh": "数据中心与算力设施", "en": "Data Center Infrastructure" },
+      "charging_robotics": { "zh": "充电机器人与智能能源终端", "en": "Charging Robotics" }
     },
     "buyerTypes": {
-      "government_utility": { "zh": "政府支持型公用事业机构", "en": "Government-backed Utility" },
-      "public_procurement": { "zh": "公共采购单位", "en": "Public Procurement Unit" },
-      "industrial_authority": { "zh": "工业园区管理机构", "en": "Industrial Zone Authority" },
-      "private_consortium": { "zh": "私营联合体", "en": "Private Consortium" }
+      "project_owner": { "zh": "项目公司", "en": "Project Owner" },
+      "developer": { "zh": "开发商", "en": "Developer" },
+      "investment_platform": { "zh": "投资平台", "en": "Investment Platform" }
+    },
+    "companyTypes": {
+      "project_owner": { "zh": "项目公司", "en": "Project Owner" },
+      "developer": { "zh": "项目开发商", "en": "Project Developer" },
+      "supplier": { "zh": "设备与工程参与方", "en": "Delivery Partner" },
+      "target_client": { "zh": "目标合作客户", "en": "Target Client" },
+      "service_platform": { "zh": "服务平台", "en": "Service Platform" }
+    },
+    "roleTypes": {
+      "epc": { "zh": "EPC 总包", "en": "EPC Partner" },
+      "grid": { "zh": "电力与变电站能力方", "en": "Grid Partner" },
+      "compute": { "zh": "数据中心与算力集成方", "en": "Compute Infrastructure Partner" },
+      "ecosystem": { "zh": "生态合作与场景伙伴", "en": "Ecosystem Partner" }
     },
     "verifiedTags": {
-      "factory_audit": { "zh": "工厂审核", "en": "Factory Audit" },
-      "oem_odm": { "zh": "OEM/ODM", "en": "OEM/ODM" },
-      "trade_assurance": { "zh": "交易保障", "en": "Trade Assurance" },
-      "epc_support": { "zh": "EPC 支持", "en": "EPC Support" },
-      "multi_factory": { "zh": "多工厂协同", "en": "Multi-Factory" }
+      "factory_audit": { "zh": "工厂审计", "en": "Factory Audit" },
+      "epc_track": { "zh": "海外 EPC 经验", "en": "Cross-border EPC Track Record" },
+      "investment_ready": { "zh": "投资合作就绪", "en": "Investment-ready" },
+      "crm_ready": { "zh": "CRM 协同就绪", "en": "CRM-ready" },
+      "solution_depth": { "zh": "方案深度强", "en": "Strong Solution Depth" }
     },
-    "certifications": ["IEC", "ISO9001", "CE", "RoHS", "KEMA", "UN38.3", "Food Grade QA"]
+    "certifications": [
+      "IEC",
+      "ISO9001",
+      "CE",
+      "T4 Data Center",
+      "Power Engineering Class I",
+      "Substation License Class I"
+    ]
   },
   "overview": {
     "africa": {
       "title": {
-        "zh": "非洲招标站：先看项目，再看要求",
-        "en": "Africa Tender Board: Start with projects, then drill into requirements"
+        "zh": "项目机会优先：先看招标与投资亮点，再进入参与方匹配",
+        "en": "Start with projects: review tender scope and investment signals before matching participants"
       },
       "text": {
-        "zh": "这个站点面向非洲项目方或招标观察者，先从地区与项目列表入手，再逐步查看认证、交付与 lot 范围。",
-        "en": "This site is designed for African buyers and observers: start with region and project discovery, then move into certifications, lead windows and lot scope."
+        "zh": "该站点围绕真实新能源项目机会展开，重点展示印尼万丹 EPC 招标与 Dartz 尼日利亚光伏储能投资组合，并抽取可直接进入 CRM 跟进流程的关键信息。",
+        "en": "This site is structured around real energy opportunities, with a primary focus on the Banten EPC tender and the Dartz Nigeria solar-storage portfolio, distilled into CRM-ready project intelligence."
       }
     },
     "china": {
       "title": {
-        "zh": "中国供应站：先看能力，再看适配机会",
-        "en": "China Supplier Network: Start with supplier capability, then see fit-for-tender opportunities"
+        "zh": "中国参与方与能力网络：先看角色能力，再看适配项目与合作信号",
+        "en": "China participant network: inspect partner roles first, then review fit-for-project signals"
       },
       "text": {
-        "zh": "这个站点面向中国制造企业或投标支持人员，先看认证、产能、交期和非洲履约经验，再往深处看它适配哪些项目。",
-        "en": "This site is for Chinese manufacturers and bid support teams: review certifications, capacity, lead time and African delivery experience before checking matched opportunities."
+        "zh": "中国站不只展示设备供应商，而是围绕 EPC、变电站、算力基础设施与生态合作伙伴展开，并加入上海挚达科技等目标客户画像与拜访目标。",
+        "en": "The China side goes beyond suppliers, surfacing EPC, substation, compute-infrastructure and ecosystem partners, with Shanghai Zhida added as a target account profile and visit brief."
       }
     },
     "match": {
       "title": {
-        "zh": "匹配模拟：先看规则，再看候选",
-        "en": "Matching Simulator: Start with rules, then review ranked suppliers"
+        "zh": "项目机会匹配中心：招标参与匹配与投资合作匹配并行",
+        "en": "Opportunity matching center: tender participation and investment partnership views in one place"
       },
       "text": {
-        "zh": "这个页面承接招标与供应商之间的中间层，用五组规则输出可解释评分，并允许保存 shortlist。",
-        "en": "This page sits between tenders and suppliers, using five weighted rules to produce explainable scores and a shortlist workflow."
+        "zh": "匹配页同时支持 EPC 招标参与匹配与投资合作匹配，并把知识库、CRM 协同、合规拦截和拜访线索沉淀整合为统一解释链路。",
+        "en": "The matching page supports both EPC tender matching and investment collaboration matching, with a shared explanation model that ties together knowledge workflows, CRM prompts, compliance gates, and visit intelligence."
       }
     }
   },
   "africaRegions": [
     {
-      "key": "east_africa",
-      "name": { "zh": "东非", "en": "East Africa" },
+      "key": "southeast_asia",
+      "name": { "zh": "东南亚数字能源走廊", "en": "Southeast Asia Digital Energy Corridor" },
       "signal": {
-        "zh": "离网电力、小型冷链、农产品加工装备需求活跃",
-        "en": "Active demand in off-grid power, cold chain and agro-processing equipment"
+        "zh": "AI 算力设施、高负荷园区用电与绿电直供场景正在快速拉动综合能源基础设施招标。",
+        "en": "AI compute demand, industrial load growth, and green-power delivery are driving integrated energy infrastructure tenders."
       },
-      "countryKeys": ["kenya", "tanzania", "uganda"]
+      "countryKeys": ["indonesia"]
     },
     {
       "key": "west_africa",
-      "name": { "zh": "西非", "en": "West Africa" },
+      "name": { "zh": "西非分布式能源走廊", "en": "West Africa Distributed Energy Corridor" },
       "signal": {
-        "zh": "工业泵、包装线、电力设备项目密集",
-        "en": "Dense pipeline for pumps, packaging lines and power equipment"
+        "zh": "农村电气化、工商业储能和世界银行支持项目，正在形成可复制的新能源投资组合。",
+        "en": "Rural electrification, commercial solar-storage, and World Bank-supported programs are creating repeatable investment pipelines."
       },
-      "countryKeys": ["nigeria", "ghana", "cote_divoire"]
-    },
-    {
-      "key": "north_africa",
-      "name": { "zh": "北非", "en": "North Africa" },
-      "signal": {
-        "zh": "光伏 EPC、配电和工业基础设施升级驱动采购",
-        "en": "Solar EPC, distribution and industrial upgrades are driving procurement"
-      },
-      "countryKeys": ["egypt", "morocco", "algeria"]
+      "countryKeys": ["nigeria"]
     }
   ],
   "matchingMethod": [
     {
       "key": "sector_fit",
-      "name": { "zh": "行业适配", "en": "Sector Fit" },
+      "name": { "zh": "角色与项目适配", "en": "Role & Project Fit" },
       "description": {
-        "zh": "招标行业与供应商主营赛道是否完全匹配。",
-        "en": "Checks whether the tender sector exactly matches the supplier's primary business."
+        "zh": "判断参与方的角色能力是否与当前项目类型、标段或合作模式匹配。",
+        "en": "Checks whether a participant's role aligns with the active project's structure, lots, and cooperation model."
       },
-      "weight": 35
+      "weight": 32
     },
     {
       "key": "cert_fit",
-      "name": { "zh": "认证与合规", "en": "Certification Fit" },
+      "name": { "zh": "资质与履历命中", "en": "Credentials & Track Record" },
       "description": {
-        "zh": "认证要求与供应商命中比例。",
-        "en": "Measures how many tender-required certifications are covered."
+        "zh": "评估资质、工程履历与国际交付能力是否满足项目门槛。",
+        "en": "Measures whether credentials, delivery history, and cross-border experience meet the project's baseline threshold."
       },
-      "weight": 25
+      "weight": 24
     },
     {
       "key": "capacity_fit",
-      "name": { "zh": "产能与交付", "en": "Capacity & Lead Time" },
+      "name": { "zh": "实施与交付能力", "en": "Execution Capacity" },
       "description": {
-        "zh": "月产能与交付周期能否满足项目要求。",
-        "en": "Measures whether monthly capacity and lead time fit project demand."
+        "zh": "根据项目规模、实施窗口与交付要求判断参与能力。",
+        "en": "Measures whether the partner can execute against the project's size, timeline, and delivery expectations."
       },
       "weight": 20
     },
     {
       "key": "market_fit",
-      "name": { "zh": "非洲履约经验", "en": "Africa Delivery Track Record" },
+      "name": { "zh": "区域经验与本地化", "en": "Regional Experience & Localization" },
       "description": {
-        "zh": "是否有该国或区域历史项目经验。",
-        "en": "Checks delivery history in the target country or region."
+        "zh": "评估在目标国家或区域的项目经验、本地协同与政策理解能力。",
+        "en": "Evaluates country or regional experience, local collaboration, and policy readiness."
       },
-      "weight": 10
+      "weight": 14
     },
     {
       "key": "ops_fit",
-      "name": { "zh": "响应与文档能力", "en": "Response & Documentation" },
+      "name": { "zh": "响应与合作准备度", "en": "Response & Collaboration Readiness" },
       "description": {
-        "zh": "材料语言、响应时效与工厂可信度。",
-        "en": "Measures language support, response speed and factory credibility."
+        "zh": "综合响应效率、方案深度、投资合作清晰度与 CRM 协同准备度。",
+        "en": "Aggregates response speed, solution depth, collaboration clarity, and CRM-readiness."
       },
       "weight": 10
     }
   ],
+  "projects": [
+    {
+      "id": "prj-banten",
+      "name": {
+        "zh": "印尼万丹 100MW 光伏 + 50MW 超算中心项目",
+        "en": "Banten 100MW Solar + 50MW AI Compute Center Project"
+      },
+      "location": {
+        "zh": "印度尼西亚万丹省",
+        "en": "Banten, Indonesia"
+      },
+      "projectType": "integrated_energy",
+      "capacityText": {
+        "zh": "100MW 光伏电站 + 50MW AI 超算中心 + 100kV 专用变电站",
+        "en": "100MW solar plant + 50MW AI compute center + 100kV dedicated substation"
+      },
+      "investmentAmount": {
+        "zh": "总投资约 3.5 亿美元",
+        "en": "Estimated total investment: USD 350M"
+      },
+      "timeline": {
+        "zh": "已具备招标文本与投资方案，适合导入 EPC、设备、变电站与算力基础设施合作方。",
+        "en": "Tender documentation and investment framing are already in place, making the project ready for EPC, equipment, substation, and compute-infrastructure partner engagement."
+      },
+      "advantages": [
+        {
+          "zh": "70 公顷土地已完成确权，项目边界清晰，降低落地不确定性。",
+          "en": "The 70-hectare site has completed title confirmation, reducing land-side execution uncertainty."
+        },
+        {
+          "zh": "绿电与算力一体化，形成电力成本与数字资产双重价值闭环。",
+          "en": "Solar generation and AI compute are integrated into a single value chain with both power and digital-asset upside."
+        },
+        {
+          "zh": "EPC、超算中心、变电站和 10 年运维被拆成清晰标段，便于中国参与方切入。",
+          "en": "EPC, compute, substation, and long-term O&M are broken into clear work packages for Chinese participants."
+        }
+      ],
+      "revenueModel": [
+        {
+          "zh": "超算服务收入为主要高附加值来源，辅以绿电交易收益。",
+          "en": "Compute service revenue is the primary high-margin stream, supplemented by green-power monetization."
+        },
+        {
+          "zh": "长期运维合同可形成稳定现金流与持续服务入口。",
+          "en": "Long-term O&M contracts create recurring cash flow and durable account access."
+        }
+      ],
+      "risks": [
+        {
+          "zh": "项目复杂度高，对 EPC 与数据中心集成协同要求极高。",
+          "en": "The project is highly complex and requires tight coordination across EPC and data-center integration."
+        },
+        {
+          "zh": "涉及跨国投资、建设与长期运维，合规和合同治理必须前置。",
+          "en": "Cross-border build and long-run operations require front-loaded legal and governance controls."
+        }
+      ],
+      "relatedCompanyIds": ["cmp-banten-green", "cmp-sunline", "cmp-gridforge", "cmp-nebula"]
+    },
+    {
+      "id": "prj-dartz",
+      "name": {
+        "zh": "DARTZ 尼日利亚光伏储能项目组合",
+        "en": "DARTZ Nigeria Solar + Storage Portfolio"
+      },
+      "location": {
+        "zh": "尼日利亚及西非地区",
+        "en": "Nigeria and the wider West Africa corridor"
+      },
+      "projectType": "solar_storage",
+      "capacityText": {
+        "zh": "80MW 项目管线，覆盖农村电气化与工商业储能",
+        "en": "80MW pipeline spanning rural electrification and C&I solar-storage"
+      },
+      "investmentAmount": {
+        "zh": "总投资机会约 5 亿美元",
+        "en": "Portfolio-scale opportunity of approximately USD 500M"
+      },
+      "timeline": {
+        "zh": "2025 Q4 进入组合整合，2025-2026 年推进新增 50MWp 项目，2027 年后复制到更多非洲国家。",
+        "en": "Portfolio integration begins in 2025 Q4, with new 50MWp rollouts in 2025-2026 and replication into other African markets after 2027."
+      },
+      "advantages": [
+        {
+          "zh": "累计已建成 10MW+，99% 运行时间，零违约记录，验证了执行能力。",
+          "en": "DARTZ has already delivered 10MW+ with 99% uptime and zero defaults, demonstrating execution credibility."
+        },
+        {
+          "zh": "世界银行 DARES 赠款模式降低了农村电气化板块的前期资金压力。",
+          "en": "The World Bank-supported DARES structure reduces upfront capital pressure for rural electrification."
+        },
+        {
+          "zh": "项目组合同时覆盖民用、商用和工业用能，具备扩张和分散风险价值。",
+          "en": "The portfolio spans residential, commercial, and industrial demand, creating scale and diversification value."
+        }
+      ],
+      "revenueModel": [
+        {
+          "zh": "长期购电协议与商业工业客户需求形成可预测现金流。",
+          "en": "Long-term PPAs and signed C&I demand create visible, contract-led revenue."
+        },
+        {
+          "zh": "设备分销与供应链业务构成补充收益来源。",
+          "en": "Equipment distribution and solar supply-chain activity provide an additional revenue layer."
+        }
+      ],
+      "risks": [
+        {
+          "zh": "跨地区扩张和本地实施能力仍需持续验证与组织扩充。",
+          "en": "Regional expansion still depends on sustained field execution and organization build-out."
+        },
+        {
+          "zh": "投融资合作更看重项目成熟度、结构清晰度与后续治理机制。",
+          "en": "Investment partners will focus on project maturity, structure clarity, and governance discipline."
+        }
+      ],
+      "relatedCompanyIds": ["cmp-dartz", "cmp-langyan", "cmp-zhida"]
+    }
+  ],
+  "companies": [
+    {
+      "id": "cmp-banten-green",
+      "name": {
+        "zh": "万丹绿能科技有限公司",
+        "en": "Banten Green Energy Technology Co., Ltd."
+      },
+      "companyType": "project_owner",
+      "country": "Indonesia",
+      "summary": {
+        "zh": "印尼万丹 100MW 光伏 + 50MW 超算中心项目招标主体，正在组织 EPC、变电站、超算中心及 10 年运维服务招标。",
+        "en": "Tendering entity for the Banten 100MW solar and 50MW AI compute center program, structuring EPC, substation, compute, and 10-year O&M packages."
+      },
+      "highlights": [
+        { "zh": "发布了完整招标说明书与时间安排", "en": "Published a full tender package with timeline and package scope" },
+        { "zh": "招标覆盖 EPC、超算中心、100kV 变电站和 10 年运维", "en": "Tender covers EPC, compute center, 100kV substation, and 10-year operations" },
+        { "zh": "项目落地目标清晰，适合中国参与方切入", "en": "Clear execution scope makes the project suitable for Chinese participants" }
+      ],
+      "capabilities": [
+        { "zh": "项目组织与招采整合", "en": "Project packaging and tender orchestration" },
+        { "zh": "跨标段协调与长期运维设计", "en": "Cross-package coordination and long-run O&M design" }
+      ],
+      "signals": [
+        { "zh": "正在寻找具备 EPC、变电站、数据中心等复合能力的合作方", "en": "Looking for partners with EPC, substation, and data-center execution strength" }
+      ]
+    },
+    {
+      "id": "cmp-dartz",
+      "name": {
+        "zh": "Dartz Technology",
+        "en": "Dartz Technology"
+      },
+      "companyType": "developer",
+      "country": "Nigeria",
+      "summary": {
+        "zh": "聚焦尼日利亚及西非市场的新能源开发与部署公司，已建成 10MW+，正在围绕 80MW 光伏储能项目组合引入投资与合作资源。",
+        "en": "A West Africa-focused clean-energy developer with 10MW+ deployed and an 80MW solar-storage pipeline seeking capital and ecosystem partners."
+      },
+      "highlights": [
+        { "zh": "10MW+ 已建成容量，99% 正常运行时间", "en": "10MW+ deployed with 99% uptime" },
+        { "zh": "世界银行 DARES 项目支持降低前期风险", "en": "World Bank-supported DARES structure lowers execution risk" },
+        { "zh": "综合 IRR 预期 25%-35%", "en": "Portfolio-level IRR expectation of 25%-35%" }
+      ],
+      "capabilities": [
+        { "zh": "农村电气化项目开发", "en": "Rural electrification development" },
+        { "zh": "工商业光伏储能解决方案", "en": "C&I solar-storage delivery" },
+        { "zh": "西非市场本地执行", "en": "West Africa local execution" }
+      ],
+      "signals": [
+        { "zh": "适合引入投资人、总包伙伴与本地运营协同能力", "en": "A fit target for investors, execution partners, and local operating collaborators" }
+      ]
+    },
+    {
+      "id": "cmp-sunline",
+      "name": {
+        "zh": "华曜国际能源工程",
+        "en": "Sunline Global Energy Engineering"
+      },
+      "companyType": "supplier",
+      "country": "China",
+      "summary": {
+        "zh": "面向海外新能源和园区项目的 EPC 参与方，具备光伏站、储能站及园区能源系统交付经验。",
+        "en": "A China-based EPC participant with delivery experience across solar, storage, and industrial energy systems."
+      },
+      "highlights": [
+        { "zh": "具备海外 EPC 交付履历", "en": "Cross-border EPC delivery experience" },
+        { "zh": "可参与设计、采购、施工一体化落地", "en": "Can support design, procurement, and construction in one package" }
+      ],
+      "capabilities": [
+        { "zh": "大型新能源项目总包协同", "en": "Large-scale renewable EPC orchestration" },
+        { "zh": "多专业接口管理", "en": "Multi-discipline interface management" }
+      ],
+      "signals": [
+        { "zh": "适合切入万丹项目 EPC 主标段", "en": "Best aligned with the Banten EPC main package" }
+      ]
+    },
+    {
+      "id": "cmp-gridforge",
+      "name": {
+        "zh": "江苏格瑞福变电与电力系统",
+        "en": "Jiangsu GridForge Substation Systems"
+      },
+      "companyType": "supplier",
+      "country": "China",
+      "summary": {
+        "zh": "擅长专用变电站、输配电与接入系统建设，可覆盖 100kV 级别变电站设计、设备与调试。",
+        "en": "Focused on dedicated substations, transmission/distribution integration, and high-voltage access systems."
+      },
+      "highlights": [
+        { "zh": "可覆盖 100kV 变电站建设与调试", "en": "Can cover 100kV substation design and commissioning" },
+        { "zh": "适合配套新能源主站建设", "en": "Strong fit for supporting renewable grid interconnection" }
+      ],
+      "capabilities": [
+        { "zh": "输变电工程实施", "en": "Transmission and substation execution" },
+        { "zh": "接入系统与并网协调", "en": "Grid interconnection coordination" }
+      ],
+      "signals": [
+        { "zh": "适合万丹项目变电站标段", "en": "Well aligned with the Banten substation package" }
+      ]
+    },
+    {
+      "id": "cmp-nebula",
+      "name": {
+        "zh": "星云算力基础设施集成",
+        "en": "Nebula Compute Infrastructure Integration"
+      },
+      "companyType": "supplier",
+      "country": "China",
+      "summary": {
+        "zh": "具备数据中心电力配套、环境控制与 AI 算力基础设施集成能力，适合作为超算中心技术参与方。",
+        "en": "A compute-infrastructure integrator covering data-center power systems, environment control, and AI deployment readiness."
+      },
+      "highlights": [
+        { "zh": "覆盖机房、电力配套与算力设施集成", "en": "Covers facility, power, and AI compute integration" },
+        { "zh": "擅长与能源侧项目协同建设", "en": "Well suited for co-deployment with energy infrastructure" }
+      ],
+      "capabilities": [
+        { "zh": "T4 级机房与运维体系规划", "en": "T4-style facility and ops planning" },
+        { "zh": "算力基础设施落地", "en": "AI compute infrastructure deployment" }
+      ],
+      "signals": [
+        { "zh": "适合万丹项目超算中心标段", "en": "Strong fit for the Banten compute-center package" }
+      ]
+    },
+    {
+      "id": "cmp-zhida",
+      "name": {
+        "zh": "上海挚达科技",
+        "en": "Shanghai Zhida Technology"
+      },
+      "companyType": "target_client",
+      "country": "China",
+      "summary": {
+        "zh": "新能源汽车充电解决方案提供商，布局家用充电桩、充电机器人、EMS 与智能充电生态，是中国侧高潜在合作客户与场景伙伴。",
+        "en": "A leading EV charging solution provider spanning home charging, charging robots, EMS, and smart charging ecosystems."
+      },
+      "highlights": [
+        { "zh": "特斯拉中国首批家用充电服务商", "en": "One of Tesla China's first home charging service partners" },
+        { "zh": "已布局充电机器人与海外交流桩", "en": "Already active in charging robotics and overseas charging products" },
+        { "zh": "具备能源终端与机器人协同场景", "en": "Represents a strong downstream smart-energy scenario partner" }
+      ],
+      "capabilities": [
+        { "zh": "智能充电终端与能源管理系统", "en": "Smart charging terminals and energy management systems" },
+        { "zh": "充电机器人与场景联动", "en": "Charging robotics and scenario integration" }
+      ],
+      "signals": [
+        { "zh": "适合作为中国站重点拜访客户画像与生态合作对象", "en": "A strong target account and ecosystem partner profile for the China side" }
+      ]
+    },
+    {
+      "id": "cmp-langyan",
+      "name": {
+        "zh": "朗言数安",
+        "en": "Langyan Digital Security"
+      },
+      "companyType": "service_platform",
+      "country": "China",
+      "summary": {
+        "zh": "以知识库、CRM 协同、合规审批和项目跟进留痕为核心的平台型服务方，在本 demo 中只作为方法论与交付机制说明出现。",
+        "en": "The platform service layer providing knowledge workflows, CRM integration, compliance gating, and service traceability."
+      },
+      "highlights": [
+        { "zh": "知识库与 CRM 松耦合高协同", "en": "Knowledge + CRM in a loosely coupled, high-collaboration model" },
+        { "zh": "支持合规清单、模板推送与脱敏案例沉淀", "en": "Supports compliance checklists, template injection, and sanitized case capture" }
+      ],
+      "capabilities": [
+        { "zh": "知识主动推送到跟进页", "en": "Knowledge pushed directly into the follow-up workflow" },
+        { "zh": "涉密内容留在 CRM，知识库仅存脱敏内容", "en": "Sensitive content stays in CRM while the knowledge layer stays sanitized" }
+      ],
+      "signals": [
+        { "zh": "平台方法论用于串联项目机会、参与方和销售跟进", "en": "Acts as the process layer connecting opportunities, partners, and sales motion" }
+      ]
+    }
+  ],
+  "visitBriefs": [
+    {
+      "id": "vb-zhida",
+      "companyId": "cmp-zhida",
+      "visitGoals": [
+        {
+          "zh": "当场确认是否启动充电机器人 AI 视觉识别联合研发小项目。",
+          "en": "Secure a clear signal on launching a joint AI-vision pilot around charging robotics."
+        },
+        {
+          "zh": "获取研发和战略决策链，锁定 1 周内技术对接会。",
+          "en": "Map the R&D and strategy decision chain and lock a technical follow-up within one week."
+        },
+        {
+          "zh": "沉淀痛点、合作条件与下一轮商务动作清单。",
+          "en": "Capture pain points, cooperation conditions, and the next round of commercial actions."
+        }
+      ],
+      "decisionMakers": [
+        "黄志明",
+        "战略负责人",
+        "研发负责人"
+      ],
+      "productFocus": {
+        "zh": "家用智能充电桩、充电机器人、EMS 能源管理系统、桩联网平台",
+        "en": "Home smart chargers, charging robots, EMS, and charging platform operations"
+      },
+      "coopSignals": [
+        {
+          "zh": "与新能源场景、机器人识别和海外能源终端生态具有交集。",
+          "en": "Clear adjacency to energy devices, robotics vision, and overseas smart-energy ecosystems."
+        },
+        {
+          "zh": "拜访目标更偏联合研发与场景合作，而非单纯设备采购。",
+          "en": "The account is a stronger fit for co-development and scenario collaboration than simple procurement."
+        }
+      ]
+    }
+  ],
   "tenders": [
     {
-      "id": "td-001",
-      "countryKey": "kenya",
-      "regionKey": "east_africa",
-      "sectorKey": "solar_equipment",
+      "id": "td-banten",
+      "projectId": "prj-banten",
+      "ownerCompanyId": "cmp-banten-green",
+      "mode": "tender",
+      "countryKey": "indonesia",
+      "regionKey": "southeast_asia",
+      "sectorKey": "integrated_energy",
       "title": {
-        "zh": "肯尼亚北部太阳能微电网设备招标",
-        "en": "Solar Mini-Grid Equipment for Northern Kenya"
+        "zh": "印尼万丹 100MW 光伏 + 50MW 超算中心 EPC 及运维招标",
+        "en": "Banten 100MW Solar + 50MW AI Compute Center EPC & O&M Tender"
       },
-      "buyerName": "Rural Energy Access Programme",
-      "buyerTypeKey": "government_utility",
-      "deadline": "2026-06-14",
-      "tenderValue": "USD 2.4M",
+      "buyerName": "Banten Green Energy Technology Co., Ltd.",
+      "buyerTypeKey": "project_owner",
+      "deadline": "2025-02-15",
+      "tenderValue": "USD 350M program scope",
       "language": "English",
-      "targetLeadDays": 55,
-      "requiredMonthlyCapacity": 1200,
-      "certificationsRequired": ["IEC", "ISO9001", "CE"],
-      "keywordKeys": ["mini-grid", "battery", "off-grid", "inverter"],
+      "targetLeadDays": 120,
+      "requiredMonthlyCapacity": 100,
+      "certificationsRequired": ["IEC", "ISO9001", "Power Engineering Class I", "Substation License Class I"],
+      "qualificationRequirements": [
+        {
+          "zh": "光伏 EPC 需具备电力工程施工总承包一级及以上资质，并有 50MW 以上光伏 EPC 业绩。",
+          "en": "Solar EPC bidders should hold top-tier power construction qualifications and at least two 50MW+ solar EPC references."
+        },
+        {
+          "zh": "超算中心部分需具备数据中心或大型智能建筑项目履历。",
+          "en": "Compute-center participants should demonstrate prior data-center or large-scale intelligent building delivery."
+        },
+        {
+          "zh": "变电站部分需具备一级输变电与承装（修、试）资质。",
+          "en": "Substation participants should show Class I transmission/distribution and install-test-maintain credentials."
+        }
+      ],
+      "commercialTerms": [
+        {
+          "zh": "接受联合体投标，联合体成员不超过 3 家。",
+          "en": "Consortia are accepted with up to three members."
+        },
+        {
+          "zh": "投标人可参与一个或多个标段，并需配合本地实施与长期运维安排。",
+          "en": "Bidders may join one or more packages and must align with local execution and long-run O&M requirements."
+        }
+      ],
+      "keywordKeys": ["epc", "substation", "compute", "om"],
       "keywords": [
-        { "zh": "微电网", "en": "Mini-grid" },
-        { "zh": "储能电池", "en": "Battery" },
-        { "zh": "离网系统", "en": "Off-grid" },
-        { "zh": "逆变器", "en": "Inverter" }
+        { "zh": "EPC", "en": "EPC" },
+        { "zh": "变电站", "en": "Substation" },
+        { "zh": "超算中心", "en": "Compute Center" },
+        { "zh": "长期运维", "en": "Long-term O&M" }
       ],
       "description": {
-        "zh": "采购集装箱式太阳能微电网包、混合逆变器、锂电储能单元，并提供现场调试支持。",
-        "en": "Supply of containerized solar mini-grid packages, hybrid inverters, lithium storage units and site commissioning support."
+        "zh": "招标范围涵盖 100MW 光伏电站、50MW 超算中心、100kV 专用变电站，以及 10 年运营维护服务，是一个典型的综合能源与数字基础设施联合招标案例。",
+        "en": "The tender spans a 100MW solar plant, a 50MW AI compute center, a dedicated 100kV substation, and ten years of operations—an integrated energy plus digital infrastructure opportunity."
       },
       "highlights": [
-        { "zh": "需提供投标保函", "en": "Bid bond required" },
-        { "zh": "需协调本地 EPC", "en": "Local EPC coordination required" },
-        { "zh": "备件覆盖 24 个月", "en": "Spare parts for 24 months" }
+        { "zh": "土地已确权，项目边界清晰", "en": "Land title has been secured" },
+        { "zh": "标段拆分清楚，便于不同中国参与方切入", "en": "Packages are clearly separated for multiple partner types" },
+        { "zh": "运维周期长，利于形成持续服务收入", "en": "Long O&M horizon creates recurring service revenue" }
       ],
       "lots": [
-        { "zh": "混合逆变器", "en": "Hybrid inverters" },
-        { "zh": "电池包", "en": "Battery packs" },
-        { "zh": "安装支架", "en": "Mounting kits" },
-        { "zh": "远程监控单元", "en": "Remote monitoring unit" }
+        { "zh": "标段一：100MW 光伏 EPC", "en": "Package 1: 100MW solar EPC" },
+        { "zh": "标段二：50MW 超算中心工程", "en": "Package 2: 50MW compute center build" },
+        { "zh": "标段三：100kV 专用变电站", "en": "Package 3: 100kV dedicated substation" },
+        { "zh": "标段四：10 年运维服务", "en": "Package 4: 10-year O&M services" }
       ]
     },
     {
-      "id": "td-002",
+      "id": "td-dartz",
+      "projectId": "prj-dartz",
+      "ownerCompanyId": "cmp-dartz",
+      "mode": "investment",
       "countryKey": "nigeria",
       "regionKey": "west_africa",
-      "sectorKey": "industrial_pumps",
+      "sectorKey": "solar_storage",
       "title": {
-        "zh": "拉各斯农工园工业泵系统招标",
-        "en": "Industrial Water Pumping Systems for Lagos Agro Parks"
+        "zh": "DARTZ 尼日利亚 80MW 光伏储能项目组合投资机会",
+        "en": "DARTZ Nigeria 80MW Solar + Storage Portfolio Investment Opportunity"
       },
-      "buyerName": "Lagos Agro-Industrial Development Office",
-      "buyerTypeKey": "public_procurement",
-      "deadline": "2026-06-22",
-      "tenderValue": "USD 1.1M",
+      "buyerName": "Dartz Technology",
+      "buyerTypeKey": "investment_platform",
+      "deadline": "2025-Q4 rolling entry",
+      "tenderValue": "USD 500M portfolio",
       "language": "English",
-      "targetLeadDays": 45,
-      "requiredMonthlyCapacity": 800,
-      "certificationsRequired": ["ISO9001", "RoHS"],
-      "keywordKeys": ["pump", "irrigation", "agro-processing", "spare parts"],
+      "targetLeadDays": 90,
+      "requiredMonthlyCapacity": 80,
+      "certificationsRequired": ["IEC", "ISO9001"],
+      "qualificationRequirements": [
+        {
+          "zh": "优先引入具备新能源项目开发、投融资结构设计或区域运营协同能力的合作方。",
+          "en": "Priority goes to partners with renewable project development, investment structuring, or regional operating capabilities."
+        },
+        {
+          "zh": "需理解世界银行 DARES 赠款机制及西非项目落地逻辑。",
+          "en": "Partners should understand the DARES grant structure and West Africa implementation logic."
+        }
+      ],
+      "commercialTerms": [
+        {
+          "zh": "合作更偏投资与资源协同，不是单一 EPC 招标。",
+          "en": "This is investment- and ecosystem-led collaboration, not a simple EPC tender."
+        },
+        {
+          "zh": "重点在项目成熟度、结构清晰度、长期现金流与扩张复制能力。",
+          "en": "The key filters are project maturity, structure clarity, long-term cash flow, and repeatability."
+        }
+      ],
+      "keywordKeys": ["investment", "rural-electrification", "cni", "west-africa"],
       "keywords": [
-        { "zh": "工业泵", "en": "Pump" },
-        { "zh": "灌溉", "en": "Irrigation" },
-        { "zh": "农产品加工", "en": "Agro-processing" },
-        { "zh": "备件", "en": "Spare parts" }
+        { "zh": "投资合作", "en": "Investment Partnership" },
+        { "zh": "农村电气化", "en": "Rural Electrification" },
+        { "zh": "工商业储能", "en": "C&I Storage" },
+        { "zh": "西非扩张", "en": "West Africa Expansion" }
       ],
       "description": {
-        "zh": "为三个农产品加工集群采购工业泵、控制柜和维护备件，并要求基础售后培训。",
-        "en": "Procurement of industrial pumping systems, control cabinets and maintenance spares for three agro-processing clusters."
+        "zh": "项目组合覆盖 50MW 农村电气化与 30MW/年工商业储能需求，依托已验证的运营记录与 DARES 赠款模式，适合作为投资、生态合作与区域复制的主案例。",
+        "en": "The portfolio combines 50MW of rural electrification and 30MW/year of C&I demand, anchored by an operating track record and DARES grant support, making it a strong investment and ecosystem case."
       },
       "highlights": [
-        { "zh": "需要售后服务计划", "en": "After-sales service plan" },
-        { "zh": "质保不低于 18 个月", "en": "Warranty not less than 18 months" },
-        { "zh": "现场技师培训", "en": "Field technician training" }
+        { "zh": "预期综合 IRR 25%-35%", "en": "Expected blended IRR of 25%-35%" },
+        { "zh": "世界银行 DARES 机制降低前期资本压力", "en": "DARES support lowers upfront capital exposure" },
+        { "zh": "具备可复制到更多非洲国家的扩张逻辑", "en": "Has a repeatable expansion model across Africa" }
       ],
       "lots": [
-        { "zh": "主泵系统", "en": "Main pumps" },
-        { "zh": "控制柜", "en": "Control cabinets" },
-        { "zh": "管路附件", "en": "Pipeline accessories" },
-        { "zh": "服务套件", "en": "Service kits" }
-      ]
-    },
-    {
-      "id": "td-003",
-      "countryKey": "egypt",
-      "regionKey": "north_africa",
-      "sectorKey": "transformers",
-      "title": {
-        "zh": "上埃及工业园中压变压器招标",
-        "en": "Medium Voltage Transformers for Upper Egypt Industrial Zone"
-      },
-      "buyerName": "Upper Egypt Industrial Utilities Authority",
-      "buyerTypeKey": "industrial_authority",
-      "deadline": "2026-07-03",
-      "tenderValue": "USD 3.8M",
-      "language": "English",
-      "targetLeadDays": 70,
-      "requiredMonthlyCapacity": 300,
-      "certificationsRequired": ["IEC", "ISO9001", "KEMA"],
-      "keywordKeys": ["transformer", "medium voltage", "substation", "switchgear"],
-      "keywords": [
-        { "zh": "变压器", "en": "Transformer" },
-        { "zh": "中压", "en": "Medium voltage" },
-        { "zh": "变电站", "en": "Substation" },
-        { "zh": "开关柜", "en": "Switchgear" }
-      ],
-      "description": {
-        "zh": "供应中压变压器与开关柜，并提供 FAT 支持，用于工业园公用事业扩建项目。",
-        "en": "Supply and FAT support for medium voltage transformers and switchgear packages serving an expanded utilities zone."
-      },
-      "highlights": [
-        { "zh": "必须做工厂验收测试", "en": "Factory Acceptance Test mandatory" },
-        { "zh": "阿拉伯语手册可选", "en": "Arabic user manuals optional" },
-        { "zh": "优先考虑本地安装伙伴", "en": "Local installation partner preferred" }
-      ],
-      "lots": [
-        { "zh": "变压器组", "en": "Transformer sets" },
-        { "zh": "开关柜", "en": "Switchgear panels" },
-        { "zh": "保护附件", "en": "Protection accessories" }
-      ]
-    },
-    {
-      "id": "td-004",
-      "countryKey": "ghana",
-      "regionKey": "west_africa",
-      "sectorKey": "packaging_machinery",
-      "title": {
-        "zh": "可可出口中心冷链包装线招标",
-        "en": "Cold-Chain Packaging Line for Cocoa Export Hub"
-      },
-      "buyerName": "Ghana Export Processing Consortium",
-      "buyerTypeKey": "private_consortium",
-      "deadline": "2026-06-28",
-      "tenderValue": "USD 860K",
-      "language": "English",
-      "targetLeadDays": 50,
-      "requiredMonthlyCapacity": 500,
-      "certificationsRequired": ["CE", "ISO9001"],
-      "keywordKeys": ["packaging", "cold-chain", "food grade", "automation"],
-      "keywords": [
-        { "zh": "包装线", "en": "Packaging" },
-        { "zh": "冷链", "en": "Cold-chain" },
-        { "zh": "食品级", "en": "Food grade" },
-        { "zh": "自动化", "en": "Automation" }
-      ],
-      "description": {
-        "zh": "建设一套可可与农产品出口包装线，包括输送、装箱、冷链监测和远程诊断支持。",
-        "en": "Integrated packaging line for cocoa exports, including conveyors, packing cells, cold-chain monitoring and remote diagnostics."
-      },
-      "highlights": [
-        { "zh": "设备必须食品级", "en": "Food-grade materials required" },
-        { "zh": "需支持远程诊断", "en": "Remote diagnostics required" },
-        { "zh": "需提供操作培训包", "en": "Operator onboarding package" }
-      ],
-      "lots": [
-        { "zh": "包装主线", "en": "Packing line" },
-        { "zh": "冷链传感器", "en": "Cold-chain sensors" },
-        { "zh": "远程面板", "en": "Remote dashboard" }
+        { "zh": "农村电气化板块", "en": "Rural electrification track" },
+        { "zh": "工商业储能板块", "en": "C&I solar-storage track" },
+        { "zh": "设备供应链与分销网络", "en": "Equipment and distribution layer" }
       ]
     }
   ],
   "suppliers": [
     {
-      "id": "sp-001",
+      "id": "sp-sunline",
+      "companyId": "cmp-sunline",
+      "roleType": "epc",
       "company": {
-        "zh": "深圳星舰能源系统",
-        "en": "Shenzhen Sunfleet Energy Systems"
+        "zh": "华曜国际能源工程",
+        "en": "Sunline Global Energy Engineering"
       },
       "companyShort": {
-        "zh": "星舰能源",
-        "en": "Sunfleet"
+        "zh": "华曜能源",
+        "en": "Sunline"
+      },
+      "city": { "zh": "上海", "en": "Shanghai" },
+      "province": { "zh": "上海", "en": "Shanghai" },
+      "sectorKeys": ["integrated_energy", "epc", "solar_storage"],
+      "productFocus": {
+        "zh": "聚焦新能源 EPC、储能系统与园区能源基础设施整合，擅长主总包与多专业界面管理。",
+        "en": "Focused on renewable EPC, storage systems, and industrial energy integration with strong general-contractor coordination."
+      },
+      "certifications": ["IEC", "ISO9001", "Power Engineering Class I"],
+      "monthlyCapacity": 150,
+      "leadDays": 90,
+      "responseHours": 8,
+      "languages": ["English", "Chinese"],
+      "africaMarketKeys": ["nigeria"],
+      "africaRegionKeys": ["west_africa", "southeast_asia"],
+      "verifiedTagKeys": ["epc_track", "solution_depth", "crm_ready"],
+      "exportYears": 11,
+      "keywordKeys": ["epc", "solar", "om", "cross-border"],
+      "keywords": ["epc", "solar", "om", "cross-border"],
+      "scoreHint": {
+        "zh": "适合作为万丹主标段 EPC 参与方，也可评估与 DARTZ 的项目执行协同。",
+        "en": "Best positioned for the Banten EPC package and also relevant for DARTZ execution partnerships."
+      },
+      "experienceCases": [
+        {
+          "zh": "有 50MW 以上新能源项目总包与海外并网经验。",
+          "en": "Holds prior 50MW+ renewable EPC and overseas interconnection experience."
+        }
+      ]
+    },
+    {
+      "id": "sp-gridforge",
+      "companyId": "cmp-gridforge",
+      "roleType": "grid",
+      "company": {
+        "zh": "江苏格瑞福变电与电力系统",
+        "en": "Jiangsu GridForge Substation Systems"
+      },
+      "companyShort": {
+        "zh": "格瑞福",
+        "en": "GridForge"
+      },
+      "city": { "zh": "南京", "en": "Nanjing" },
+      "province": { "zh": "江苏", "en": "Jiangsu" },
+      "sectorKeys": ["integrated_energy", "substation"],
+      "productFocus": {
+        "zh": "覆盖输变电工程、100kV 级专用变电站、接入系统与并网调试。",
+        "en": "Covers transmission work, 100kV dedicated substations, access systems, and grid commissioning."
+      },
+      "certifications": ["ISO9001", "Power Engineering Class I", "Substation License Class I"],
+      "monthlyCapacity": 120,
+      "leadDays": 100,
+      "responseHours": 10,
+      "languages": ["English", "Chinese"],
+      "africaMarketKeys": ["nigeria"],
+      "africaRegionKeys": ["west_africa", "southeast_asia"],
+      "verifiedTagKeys": ["epc_track", "factory_audit"],
+      "exportYears": 14,
+      "keywordKeys": ["substation", "grid", "interconnection", "commissioning"],
+      "keywords": ["substation", "grid", "interconnection", "commissioning"],
+      "scoreHint": {
+        "zh": "适合万丹 100kV 专用变电站标段，并可为大型项目提供并网与接入支持。",
+        "en": "Strong fit for the Banten 100kV substation package and high-voltage interconnection support."
+      },
+      "experienceCases": [
+        {
+          "zh": "拥有高压变电与并网调试的跨区域项目经验。",
+          "en": "Has regional experience in high-voltage substation delivery and interconnection testing."
+        }
+      ]
+    },
+    {
+      "id": "sp-nebula",
+      "companyId": "cmp-nebula",
+      "roleType": "compute",
+      "company": {
+        "zh": "星云算力基础设施集成",
+        "en": "Nebula Compute Infrastructure Integration"
+      },
+      "companyShort": {
+        "zh": "星云算力",
+        "en": "Nebula"
       },
       "city": { "zh": "深圳", "en": "Shenzhen" },
       "province": { "zh": "广东", "en": "Guangdong" },
-      "sectorKeys": ["solar_equipment"],
+      "sectorKeys": ["integrated_energy", "data_center"],
       "productFocus": {
-        "zh": "主营混合逆变器、锂电储能与远程监控网关。",
-        "en": "Focus on hybrid inverters, lithium storage and monitoring gateways."
+        "zh": "擅长 T4 机房、电力配套、环境控制和 AI 算力基础设施落地。",
+        "en": "Focused on T4 facility planning, power support systems, environment control, and AI compute deployment."
       },
-      "certifications": ["IEC", "ISO9001", "CE", "UN38.3"],
-      "monthlyCapacity": 1600,
-      "leadDays": 42,
+      "certifications": ["ISO9001", "T4 Data Center"],
+      "monthlyCapacity": 95,
+      "leadDays": 105,
       "responseHours": 6,
-      "languages": ["English"],
-      "africaMarketKeys": ["kenya", "uganda", "nigeria"],
-      "africaRegionKeys": ["east_africa", "west_africa"],
-      "verifiedTagKeys": ["factory_audit", "oem_odm", "trade_assurance"],
-      "exportYears": 9,
-      "keywordKeys": ["mini-grid", "battery", "off-grid", "inverter"],
-      "keywords": ["mini-grid", "battery", "off-grid", "inverter"],
-      "scoreHint": {
-        "zh": "适合离网和微电网类招标。",
-        "en": "Strong fit for off-grid and mini-grid tenders."
-      }
-    },
-    {
-      "id": "sp-002",
-      "company": {
-        "zh": "温州流核工业泵业",
-        "en": "Wenzhou FlowCore Industrial Pumps"
-      },
-      "companyShort": {
-        "zh": "流核泵业",
-        "en": "FlowCore"
-      },
-      "city": { "zh": "温州", "en": "Wenzhou" },
-      "province": { "zh": "浙江", "en": "Zhejiang" },
-      "sectorKeys": ["industrial_pumps"],
-      "productFocus": {
-        "zh": "主营工业泵、灌溉泵和农产品加工泵组。",
-        "en": "Focus on industrial, irrigation and agro-processing pump systems."
-      },
-      "certifications": ["ISO9001", "RoHS", "CE"],
-      "monthlyCapacity": 1200,
-      "leadDays": 38,
-      "responseHours": 8,
-      "languages": ["English"],
-      "africaMarketKeys": ["nigeria", "ghana", "kenya"],
-      "africaRegionKeys": ["west_africa", "east_africa"],
-      "verifiedTagKeys": ["factory_audit", "trade_assurance"],
-      "exportYears": 11,
-      "keywordKeys": ["pump", "irrigation", "agro-processing", "spare parts"],
-      "keywords": ["pump", "irrigation", "agro-processing", "spare parts"],
-      "scoreHint": {
-        "zh": "更适合农业与水系统相关招标。",
-        "en": "Best fit for irrigation and water-system tenders."
-      }
-    },
-    {
-      "id": "sp-003",
-      "company": {
-        "zh": "江苏桥电变压器制造",
-        "en": "Jiangsu VoltBridge Transformer Works"
-      },
-      "companyShort": {
-        "zh": "桥电变压器",
-        "en": "VoltBridge"
-      },
-      "city": { "zh": "扬州", "en": "Yangzhou" },
-      "province": { "zh": "江苏", "en": "Jiangsu" },
-      "sectorKeys": ["transformers"],
-      "productFocus": {
-        "zh": "主营中压变压器、变电站集成和保护柜。",
-        "en": "Focus on medium-voltage transformers, substations and protection cabinets."
-      },
-      "certifications": ["IEC", "ISO9001", "KEMA"],
-      "monthlyCapacity": 360,
-      "leadDays": 58,
-      "responseHours": 12,
-      "languages": ["English"],
-      "africaMarketKeys": ["egypt", "algeria", "morocco"],
-      "africaRegionKeys": ["north_africa"],
-      "verifiedTagKeys": ["factory_audit", "epc_support"],
-      "exportYears": 14,
-      "keywordKeys": ["transformer", "medium voltage", "substation", "switchgear"],
-      "keywords": ["transformer", "medium voltage", "substation", "switchgear"],
-      "scoreHint": {
-        "zh": "更适合高压配电和工业园公用事业项目。",
-        "en": "Strong fit for utility and industrial distribution tenders."
-      }
-    },
-    {
-      "id": "sp-004",
-      "company": {
-        "zh": "青岛匠装自动化",
-        "en": "Qingdao PackForge Automation"
-      },
-      "companyShort": {
-        "zh": "匠装自动化",
-        "en": "PackForge"
-      },
-      "city": { "zh": "青岛", "en": "Qingdao" },
-      "province": { "zh": "山东", "en": "Shandong" },
-      "sectorKeys": ["packaging_machinery"],
-      "productFocus": {
-        "zh": "主营食品级包装线、输送系统和冷链监测。",
-        "en": "Focus on food-grade packing lines, conveyors and cold-chain monitoring."
-      },
-      "certifications": ["CE", "ISO9001", "Food Grade QA"],
-      "monthlyCapacity": 620,
-      "leadDays": 47,
-      "responseHours": 10,
-      "languages": ["English"],
-      "africaMarketKeys": ["ghana", "cote_divoire", "nigeria"],
-      "africaRegionKeys": ["west_africa"],
-      "verifiedTagKeys": ["factory_audit", "oem_odm"],
+      "languages": ["English", "Chinese"],
+      "africaMarketKeys": [],
+      "africaRegionKeys": ["southeast_asia"],
+      "verifiedTagKeys": ["solution_depth", "crm_ready"],
       "exportYears": 8,
-      "keywordKeys": ["packaging", "cold-chain", "food grade", "automation"],
-      "keywords": ["packaging", "cold-chain", "food grade", "automation"],
+      "keywordKeys": ["data-center", "compute", "cooling", "ai"],
+      "keywords": ["data-center", "compute", "cooling", "ai"],
       "scoreHint": {
-        "zh": "最适合食品加工和出口包装类项目。",
-        "en": "Best fit for export-packaging and food processing opportunities."
-      }
+        "zh": "最适合切入万丹超算中心标段，也可为储能项目提供数字化管理能力。",
+        "en": "Best fit for the Banten compute-center package and relevant for digital operations in storage portfolios."
+      },
+      "experienceCases": [
+        {
+          "zh": "有数据中心基础设施与能源侧配套一体化经验。",
+          "en": "Has integrated data-center and energy-infrastructure delivery experience."
+        }
+      ]
     },
     {
-      "id": "sp-005",
+      "id": "sp-zhida",
+      "companyId": "cmp-zhida",
+      "roleType": "ecosystem",
+      "visitBriefId": "vb-zhida",
       "company": {
-        "zh": "宁波跨工联合采购中心",
-        "en": "Ningbo TradeSpan Sourcing Hub"
+        "zh": "上海挚达科技",
+        "en": "Shanghai Zhida Technology"
       },
       "companyShort": {
-        "zh": "跨工联合",
-        "en": "TradeSpan"
+        "zh": "挚达科技",
+        "en": "Zhida"
       },
-      "city": { "zh": "宁波", "en": "Ningbo" },
-      "province": { "zh": "浙江", "en": "Zhejiang" },
-      "sectorKeys": ["solar_equipment", "industrial_pumps", "packaging_machinery"],
+      "city": { "zh": "上海", "en": "Shanghai" },
+      "province": { "zh": "上海", "en": "Shanghai" },
+      "sectorKeys": ["charging_robotics", "solar_storage"],
       "productFocus": {
-        "zh": "跨品类联合采购、文档整合与投标支持能力强。",
-        "en": "Strong at cross-category sourcing, documentation assembly and tender response support."
+        "zh": "覆盖家用智能充电桩、充电机器人、EMS 和海外交流桩，偏场景合作与联合研发。",
+        "en": "Covers smart chargers, charging robots, EMS, and overseas AC charging products with a strong co-development angle."
       },
       "certifications": ["ISO9001", "CE"],
-      "monthlyCapacity": 900,
-      "leadDays": 60,
-      "responseHours": 4,
-      "languages": ["English", "French"],
-      "africaMarketKeys": ["kenya", "ghana", "egypt", "nigeria"],
-      "africaRegionKeys": ["east_africa", "west_africa", "north_africa"],
-      "verifiedTagKeys": ["trade_assurance", "multi_factory"],
-      "exportYears": 6,
-      "keywordKeys": ["tender", "documentation", "aggregation", "compliance"],
-      "keywords": ["tender", "documentation", "aggregation", "compliance"],
+      "monthlyCapacity": 70,
+      "leadDays": 75,
+      "responseHours": 12,
+      "languages": ["English", "Chinese"],
+      "africaMarketKeys": [],
+      "africaRegionKeys": ["china"],
+      "verifiedTagKeys": ["investment_ready", "crm_ready"],
+      "exportYears": 15,
+      "keywordKeys": ["robotics", "charging", "ems", "pilot"],
+      "keywords": ["robotics", "charging", "ems", "pilot"],
       "scoreHint": {
-        "zh": "适合作为多品类项目的协调型候选。",
-        "en": "Good fit as a coordinator for multi-category sourcing packages."
-      }
-    },
-    {
-      "id": "sp-006",
-      "company": {
-        "zh": "佛山峰网电气",
-        "en": "Foshan GridPeak Electrical"
+        "zh": "不是传统招标供应商，更适合作为场景合作、联合研发或能源终端生态伙伴。",
+        "en": "Not a classic tender supplier, but a strong fit for scenario collaboration and co-development."
       },
-      "companyShort": {
-        "zh": "峰网电气",
-        "en": "GridPeak"
-      },
-      "city": { "zh": "佛山", "en": "Foshan" },
-      "province": { "zh": "广东", "en": "Guangdong" },
-      "sectorKeys": ["transformers", "solar_equipment"],
-      "productFocus": {
-        "zh": "主营紧凑型变电站、开关柜和储能一体化单元。",
-        "en": "Focus on compact substations, switchgear and utility-scale storage integration."
-      },
-      "certifications": ["IEC", "ISO9001", "CE"],
-      "monthlyCapacity": 420,
-      "leadDays": 64,
-      "responseHours": 16,
-      "languages": ["English"],
-      "africaMarketKeys": ["egypt", "kenya"],
-      "africaRegionKeys": ["north_africa", "east_africa"],
-      "verifiedTagKeys": ["factory_audit"],
-      "exportYears": 10,
-      "keywordKeys": ["transformer", "switchgear", "substation", "solar"],
-      "keywords": ["transformer", "switchgear", "substation", "solar"],
-      "scoreHint": {
-        "zh": "适合配电与光储结合型项目。",
-        "en": "Best fit for distribution and solar-storage hybrid projects."
-      }
+      "experienceCases": [
+        {
+          "zh": "适合作为销售拜访与生态合作对象，而非单纯 EPC 投标方。",
+          "en": "Best treated as a target account and ecosystem partner rather than a pure EPC bidder."
+        }
+      ]
     }
   ],
   "runtime": {
-    "schemaVersion": 4,
-    "lastTenderId": "td-001",
-    "lastSupplierId": "sp-001",
+    "schemaVersion": 5,
+    "lastTenderId": "td-banten",
+    "lastSupplierId": "sp-sunline",
     "shortlists": [
       {
-        "id": "sl-001",
-        "tenderId": "td-001",
-        "supplierId": "sp-001",
-        "note": "优先联系，适合做首轮技术澄清与样品计划。",
-        "score": 96,
-        "createdAt": "2026-05-21T08:30:00.000Z"
+        "id": "sl-2001",
+        "tenderId": "td-banten",
+        "supplierId": "sp-sunline",
+        "projectId": "prj-banten",
+        "mode": "tender",
+        "note": "Priority EPC candidate for the main Banten package.",
+        "score": 97,
+        "createdAt": "2026-05-20T08:30:00.000Z"
       },
       {
-        "id": "sl-002",
-        "tenderId": "td-003",
-        "supplierId": "sp-003",
-        "note": "适合进入 FAT 方案沟通。",
-        "score": 94,
-        "createdAt": "2026-05-21T09:10:00.000Z"
+        "id": "sl-2002",
+        "tenderId": "td-dartz",
+        "supplierId": "sp-zhida",
+        "projectId": "prj-dartz",
+        "mode": "investment",
+        "note": "Potential ecosystem cooperation angle around smart energy terminals.",
+        "score": 84,
+        "createdAt": "2026-05-20T09:00:00.000Z"
       }
     ]
   }

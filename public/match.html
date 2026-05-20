@@ -25,6 +25,16 @@
         <section class="panel">
           <div class="panel-head">
             <div>
+              <p id="mode-kicker" class="kicker"></p>
+              <h2 id="mode-title"></h2>
+            </div>
+          </div>
+          <div id="mode-switch" class="mode-switch"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
               <p id="method-kicker" class="kicker"></p>
               <h2 id="method-title"></h2>
             </div>
@@ -36,11 +46,17 @@
           <aside class="panel detail-panel">
             <div class="panel-head">
               <div>
-                <p id="match-detail-kicker" class="kicker"></p>
-                <h2 id="match-detail-title"></h2>
+                <p id="match-opportunity-kicker" class="kicker"></p>
+                <h2 id="match-opportunity-title"></h2>
               </div>
             </div>
-            <div id="match-tender-detail"></div>
+            <div id="match-opportunity-detail"></div>
+            <div class="subpanel">
+              <div class="subpanel-head">
+                <h3 id="related-companies-title"></h3>
+              </div>
+              <div id="related-company-list" class="mini-list"></div>
+            </div>
             <div class="subpanel">
               <div class="subpanel-head">
                 <h3 id="shortlist-title"></h3>
@@ -52,11 +68,27 @@
           <section class="panel">
             <div class="panel-head">
               <div>
-                <p id="match-kicker" class="kicker"></p>
+                <p id="match-list-kicker" class="kicker"></p>
                 <h2 id="match-list-title"></h2>
               </div>
             </div>
             <div id="match-list" class="card-list"></div>
+          </section>
+        </section>
+
+        <section class="content-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p id="why-kicker" class="kicker"></p>
+                <h2 id="why-title"></h2>
+              </div>
+            </div>
+            <div id="why-list" class="mini-list"></div>
+          </section>
+
+          <section class="panel">
+            <div id="match-langyan-surface"></div>
           </section>
         </section>
       </main>
