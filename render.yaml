@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: industrial-park-demo-live
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true

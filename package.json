@@ -1,0 +1,12 @@
+{
+  "name": "industrial-park-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Industrial park outbound service demo",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

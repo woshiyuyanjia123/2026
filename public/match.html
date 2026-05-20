@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matching Simulator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-page="match" data-default-lang="en">
+    <div class="shell">
+      <header id="site-header"></header>
+      <main class="page">
+        <section class="hero">
+          <div class="hero-copy">
+            <p id="hero-kicker" class="kicker"></p>
+            <h1 id="hero-title"></h1>
+            <p id="hero-text" class="hero-text"></p>
+            <div id="flow-steps" class="flow-steps"></div>
+          </div>
+          <aside class="hero-aside">
+            <div id="stats-grid" class="stats-grid"></div>
+          </aside>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p id="method-kicker" class="kicker"></p>
+              <h2 id="method-title"></h2>
+            </div>
+          </div>
+          <div id="method-grid" class="method-grid"></div>
+        </section>
+
+        <section class="content-grid">
+          <aside class="panel detail-panel">
+            <div class="panel-head">
+              <div>
+                <p id="match-detail-kicker" class="kicker"></p>
+                <h2 id="match-detail-title"></h2>
+              </div>
+            </div>
+            <div id="match-tender-detail"></div>
+            <div class="subpanel">
+              <div class="subpanel-head">
+                <h3 id="shortlist-title"></h3>
+              </div>
+              <div id="shortlist-list" class="mini-list"></div>
+            </div>
+          </aside>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p id="match-kicker" class="kicker"></p>
+                <h2 id="match-list-title"></h2>
+              </div>
+            </div>
+            <div id="match-list" class="card-list"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>

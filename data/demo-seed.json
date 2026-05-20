@@ -1,0 +1,541 @@
+{
+  "meta": {
+    "platformTitle": {
+      "zh": "双站双语招投标平台 Demo",
+      "en": "Dual-Site Bilingual Tender Demo"
+    },
+    "platformSubtitle": {
+      "zh": "非洲招标站、中国供应站与匹配模拟共用同一后端",
+      "en": "Africa tenders, China suppliers and matching simulator on one shared backend"
+    }
+  },
+  "lookups": {
+    "regions": {
+      "east_africa": { "zh": "东非", "en": "East Africa" },
+      "west_africa": { "zh": "西非", "en": "West Africa" },
+      "north_africa": { "zh": "北非", "en": "North Africa" }
+    },
+    "countries": {
+      "kenya": { "zh": "肯尼亚", "en": "Kenya" },
+      "tanzania": { "zh": "坦桑尼亚", "en": "Tanzania" },
+      "uganda": { "zh": "乌干达", "en": "Uganda" },
+      "nigeria": { "zh": "尼日利亚", "en": "Nigeria" },
+      "ghana": { "zh": "加纳", "en": "Ghana" },
+      "cote_divoire": { "zh": "科特迪瓦", "en": "Cote d'Ivoire" },
+      "egypt": { "zh": "埃及", "en": "Egypt" },
+      "morocco": { "zh": "摩洛哥", "en": "Morocco" },
+      "algeria": { "zh": "阿尔及利亚", "en": "Algeria" }
+    },
+    "sectors": {
+      "solar_equipment": { "zh": "光伏设备", "en": "Solar Equipment" },
+      "industrial_pumps": { "zh": "工业泵系统", "en": "Industrial Pumps" },
+      "transformers": { "zh": "变压器与配电设备", "en": "Transformers" },
+      "packaging_machinery": { "zh": "包装机械", "en": "Packaging Machinery" }
+    },
+    "buyerTypes": {
+      "government_utility": { "zh": "政府支持型公用事业机构", "en": "Government-backed Utility" },
+      "public_procurement": { "zh": "公共采购单位", "en": "Public Procurement Unit" },
+      "industrial_authority": { "zh": "工业园区管理机构", "en": "Industrial Zone Authority" },
+      "private_consortium": { "zh": "私营联合体", "en": "Private Consortium" }
+    },
+    "verifiedTags": {
+      "factory_audit": { "zh": "工厂审核", "en": "Factory Audit" },
+      "oem_odm": { "zh": "OEM/ODM", "en": "OEM/ODM" },
+      "trade_assurance": { "zh": "交易保障", "en": "Trade Assurance" },
+      "epc_support": { "zh": "EPC 支持", "en": "EPC Support" },
+      "multi_factory": { "zh": "多工厂协同", "en": "Multi-Factory" }
+    },
+    "certifications": ["IEC", "ISO9001", "CE", "RoHS", "KEMA", "UN38.3", "Food Grade QA"]
+  },
+  "overview": {
+    "africa": {
+      "title": {
+        "zh": "非洲招标站：先看项目，再看要求",
+        "en": "Africa Tender Board: Start with projects, then drill into requirements"
+      },
+      "text": {
+        "zh": "这个站点面向非洲项目方或招标观察者，先从地区与项目列表入手，再逐步查看认证、交付与 lot 范围。",
+        "en": "This site is designed for African buyers and observers: start with region and project discovery, then move into certifications, lead windows and lot scope."
+      }
+    },
+    "china": {
+      "title": {
+        "zh": "中国供应站：先看能力，再看适配机会",
+        "en": "China Supplier Network: Start with supplier capability, then see fit-for-tender opportunities"
+      },
+      "text": {
+        "zh": "这个站点面向中国制造企业或投标支持人员，先看认证、产能、交期和非洲履约经验，再往深处看它适配哪些项目。",
+        "en": "This site is for Chinese manufacturers and bid support teams: review certifications, capacity, lead time and African delivery experience before checking matched opportunities."
+      }
+    },
+    "match": {
+      "title": {
+        "zh": "匹配模拟：先看规则，再看候选",
+        "en": "Matching Simulator: Start with rules, then review ranked suppliers"
+      },
+      "text": {
+        "zh": "这个页面承接招标与供应商之间的中间层，用五组规则输出可解释评分，并允许保存 shortlist。",
+        "en": "This page sits between tenders and suppliers, using five weighted rules to produce explainable scores and a shortlist workflow."
+      }
+    }
+  },
+  "africaRegions": [
+    {
+      "key": "east_africa",
+      "name": { "zh": "东非", "en": "East Africa" },
+      "signal": {
+        "zh": "离网电力、小型冷链、农产品加工装备需求活跃",
+        "en": "Active demand in off-grid power, cold chain and agro-processing equipment"
+      },
+      "countryKeys": ["kenya", "tanzania", "uganda"]
+    },
+    {
+      "key": "west_africa",
+      "name": { "zh": "西非", "en": "West Africa" },
+      "signal": {
+        "zh": "工业泵、包装线、电力设备项目密集",
+        "en": "Dense pipeline for pumps, packaging lines and power equipment"
+      },
+      "countryKeys": ["nigeria", "ghana", "cote_divoire"]
+    },
+    {
+      "key": "north_africa",
+      "name": { "zh": "北非", "en": "North Africa" },
+      "signal": {
+        "zh": "光伏 EPC、配电和工业基础设施升级驱动采购",
+        "en": "Solar EPC, distribution and industrial upgrades are driving procurement"
+      },
+      "countryKeys": ["egypt", "morocco", "algeria"]
+    }
+  ],
+  "matchingMethod": [
+    {
+      "key": "sector_fit",
+      "name": { "zh": "行业适配", "en": "Sector Fit" },
+      "description": {
+        "zh": "招标行业与供应商主营赛道是否完全匹配。",
+        "en": "Checks whether the tender sector exactly matches the supplier's primary business."
+      },
+      "weight": 35
+    },
+    {
+      "key": "cert_fit",
+      "name": { "zh": "认证与合规", "en": "Certification Fit" },
+      "description": {
+        "zh": "认证要求与供应商命中比例。",
+        "en": "Measures how many tender-required certifications are covered."
+      },
+      "weight": 25
+    },
+    {
+      "key": "capacity_fit",
+      "name": { "zh": "产能与交付", "en": "Capacity & Lead Time" },
+      "description": {
+        "zh": "月产能与交付周期能否满足项目要求。",
+        "en": "Measures whether monthly capacity and lead time fit project demand."
+      },
+      "weight": 20
+    },
+    {
+      "key": "market_fit",
+      "name": { "zh": "非洲履约经验", "en": "Africa Delivery Track Record" },
+      "description": {
+        "zh": "是否有该国或区域历史项目经验。",
+        "en": "Checks delivery history in the target country or region."
+      },
+      "weight": 10
+    },
+    {
+      "key": "ops_fit",
+      "name": { "zh": "响应与文档能力", "en": "Response & Documentation" },
+      "description": {
+        "zh": "材料语言、响应时效与工厂可信度。",
+        "en": "Measures language support, response speed and factory credibility."
+      },
+      "weight": 10
+    }
+  ],
+  "tenders": [
+    {
+      "id": "td-001",
+      "countryKey": "kenya",
+      "regionKey": "east_africa",
+      "sectorKey": "solar_equipment",
+      "title": {
+        "zh": "肯尼亚北部太阳能微电网设备招标",
+        "en": "Solar Mini-Grid Equipment for Northern Kenya"
+      },
+      "buyerName": "Rural Energy Access Programme",
+      "buyerTypeKey": "government_utility",
+      "deadline": "2026-06-14",
+      "tenderValue": "USD 2.4M",
+      "language": "English",
+      "targetLeadDays": 55,
+      "requiredMonthlyCapacity": 1200,
+      "certificationsRequired": ["IEC", "ISO9001", "CE"],
+      "keywordKeys": ["mini-grid", "battery", "off-grid", "inverter"],
+      "keywords": [
+        { "zh": "微电网", "en": "Mini-grid" },
+        { "zh": "储能电池", "en": "Battery" },
+        { "zh": "离网系统", "en": "Off-grid" },
+        { "zh": "逆变器", "en": "Inverter" }
+      ],
+      "description": {
+        "zh": "采购集装箱式太阳能微电网包、混合逆变器、锂电储能单元，并提供现场调试支持。",
+        "en": "Supply of containerized solar mini-grid packages, hybrid inverters, lithium storage units and site commissioning support."
+      },
+      "highlights": [
+        { "zh": "需提供投标保函", "en": "Bid bond required" },
+        { "zh": "需协调本地 EPC", "en": "Local EPC coordination required" },
+        { "zh": "备件覆盖 24 个月", "en": "Spare parts for 24 months" }
+      ],
+      "lots": [
+        { "zh": "混合逆变器", "en": "Hybrid inverters" },
+        { "zh": "电池包", "en": "Battery packs" },
+        { "zh": "安装支架", "en": "Mounting kits" },
+        { "zh": "远程监控单元", "en": "Remote monitoring unit" }
+      ]
+    },
+    {
+      "id": "td-002",
+      "countryKey": "nigeria",
+      "regionKey": "west_africa",
+      "sectorKey": "industrial_pumps",
+      "title": {
+        "zh": "拉各斯农工园工业泵系统招标",
+        "en": "Industrial Water Pumping Systems for Lagos Agro Parks"
+      },
+      "buyerName": "Lagos Agro-Industrial Development Office",
+      "buyerTypeKey": "public_procurement",
+      "deadline": "2026-06-22",
+      "tenderValue": "USD 1.1M",
+      "language": "English",
+      "targetLeadDays": 45,
+      "requiredMonthlyCapacity": 800,
+      "certificationsRequired": ["ISO9001", "RoHS"],
+      "keywordKeys": ["pump", "irrigation", "agro-processing", "spare parts"],
+      "keywords": [
+        { "zh": "工业泵", "en": "Pump" },
+        { "zh": "灌溉", "en": "Irrigation" },
+        { "zh": "农产品加工", "en": "Agro-processing" },
+        { "zh": "备件", "en": "Spare parts" }
+      ],
+      "description": {
+        "zh": "为三个农产品加工集群采购工业泵、控制柜和维护备件，并要求基础售后培训。",
+        "en": "Procurement of industrial pumping systems, control cabinets and maintenance spares for three agro-processing clusters."
+      },
+      "highlights": [
+        { "zh": "需要售后服务计划", "en": "After-sales service plan" },
+        { "zh": "质保不低于 18 个月", "en": "Warranty not less than 18 months" },
+        { "zh": "现场技师培训", "en": "Field technician training" }
+      ],
+      "lots": [
+        { "zh": "主泵系统", "en": "Main pumps" },
+        { "zh": "控制柜", "en": "Control cabinets" },
+        { "zh": "管路附件", "en": "Pipeline accessories" },
+        { "zh": "服务套件", "en": "Service kits" }
+      ]
+    },
+    {
+      "id": "td-003",
+      "countryKey": "egypt",
+      "regionKey": "north_africa",
+      "sectorKey": "transformers",
+      "title": {
+        "zh": "上埃及工业园中压变压器招标",
+        "en": "Medium Voltage Transformers for Upper Egypt Industrial Zone"
+      },
+      "buyerName": "Upper Egypt Industrial Utilities Authority",
+      "buyerTypeKey": "industrial_authority",
+      "deadline": "2026-07-03",
+      "tenderValue": "USD 3.8M",
+      "language": "English",
+      "targetLeadDays": 70,
+      "requiredMonthlyCapacity": 300,
+      "certificationsRequired": ["IEC", "ISO9001", "KEMA"],
+      "keywordKeys": ["transformer", "medium voltage", "substation", "switchgear"],
+      "keywords": [
+        { "zh": "变压器", "en": "Transformer" },
+        { "zh": "中压", "en": "Medium voltage" },
+        { "zh": "变电站", "en": "Substation" },
+        { "zh": "开关柜", "en": "Switchgear" }
+      ],
+      "description": {
+        "zh": "供应中压变压器与开关柜，并提供 FAT 支持，用于工业园公用事业扩建项目。",
+        "en": "Supply and FAT support for medium voltage transformers and switchgear packages serving an expanded utilities zone."
+      },
+      "highlights": [
+        { "zh": "必须做工厂验收测试", "en": "Factory Acceptance Test mandatory" },
+        { "zh": "阿拉伯语手册可选", "en": "Arabic user manuals optional" },
+        { "zh": "优先考虑本地安装伙伴", "en": "Local installation partner preferred" }
+      ],
+      "lots": [
+        { "zh": "变压器组", "en": "Transformer sets" },
+        { "zh": "开关柜", "en": "Switchgear panels" },
+        { "zh": "保护附件", "en": "Protection accessories" }
+      ]
+    },
+    {
+      "id": "td-004",
+      "countryKey": "ghana",
+      "regionKey": "west_africa",
+      "sectorKey": "packaging_machinery",
+      "title": {
+        "zh": "可可出口中心冷链包装线招标",
+        "en": "Cold-Chain Packaging Line for Cocoa Export Hub"
+      },
+      "buyerName": "Ghana Export Processing Consortium",
+      "buyerTypeKey": "private_consortium",
+      "deadline": "2026-06-28",
+      "tenderValue": "USD 860K",
+      "language": "English",
+      "targetLeadDays": 50,
+      "requiredMonthlyCapacity": 500,
+      "certificationsRequired": ["CE", "ISO9001"],
+      "keywordKeys": ["packaging", "cold-chain", "food grade", "automation"],
+      "keywords": [
+        { "zh": "包装线", "en": "Packaging" },
+        { "zh": "冷链", "en": "Cold-chain" },
+        { "zh": "食品级", "en": "Food grade" },
+        { "zh": "自动化", "en": "Automation" }
+      ],
+      "description": {
+        "zh": "建设一套可可与农产品出口包装线，包括输送、装箱、冷链监测和远程诊断支持。",
+        "en": "Integrated packaging line for cocoa exports, including conveyors, packing cells, cold-chain monitoring and remote diagnostics."
+      },
+      "highlights": [
+        { "zh": "设备必须食品级", "en": "Food-grade materials required" },
+        { "zh": "需支持远程诊断", "en": "Remote diagnostics required" },
+        { "zh": "需提供操作培训包", "en": "Operator onboarding package" }
+      ],
+      "lots": [
+        { "zh": "包装主线", "en": "Packing line" },
+        { "zh": "冷链传感器", "en": "Cold-chain sensors" },
+        { "zh": "远程面板", "en": "Remote dashboard" }
+      ]
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "sp-001",
+      "company": {
+        "zh": "深圳星舰能源系统",
+        "en": "Shenzhen Sunfleet Energy Systems"
+      },
+      "companyShort": {
+        "zh": "星舰能源",
+        "en": "Sunfleet"
+      },
+      "city": { "zh": "深圳", "en": "Shenzhen" },
+      "province": { "zh": "广东", "en": "Guangdong" },
+      "sectorKeys": ["solar_equipment"],
+      "productFocus": {
+        "zh": "主营混合逆变器、锂电储能与远程监控网关。",
+        "en": "Focus on hybrid inverters, lithium storage and monitoring gateways."
+      },
+      "certifications": ["IEC", "ISO9001", "CE", "UN38.3"],
+      "monthlyCapacity": 1600,
+      "leadDays": 42,
+      "responseHours": 6,
+      "languages": ["English"],
+      "africaMarketKeys": ["kenya", "uganda", "nigeria"],
+      "africaRegionKeys": ["east_africa", "west_africa"],
+      "verifiedTagKeys": ["factory_audit", "oem_odm", "trade_assurance"],
+      "exportYears": 9,
+      "keywordKeys": ["mini-grid", "battery", "off-grid", "inverter"],
+      "keywords": ["mini-grid", "battery", "off-grid", "inverter"],
+      "scoreHint": {
+        "zh": "适合离网和微电网类招标。",
+        "en": "Strong fit for off-grid and mini-grid tenders."
+      }
+    },
+    {
+      "id": "sp-002",
+      "company": {
+        "zh": "温州流核工业泵业",
+        "en": "Wenzhou FlowCore Industrial Pumps"
+      },
+      "companyShort": {
+        "zh": "流核泵业",
+        "en": "FlowCore"
+      },
+      "city": { "zh": "温州", "en": "Wenzhou" },
+      "province": { "zh": "浙江", "en": "Zhejiang" },
+      "sectorKeys": ["industrial_pumps"],
+      "productFocus": {
+        "zh": "主营工业泵、灌溉泵和农产品加工泵组。",
+        "en": "Focus on industrial, irrigation and agro-processing pump systems."
+      },
+      "certifications": ["ISO9001", "RoHS", "CE"],
+      "monthlyCapacity": 1200,
+      "leadDays": 38,
+      "responseHours": 8,
+      "languages": ["English"],
+      "africaMarketKeys": ["nigeria", "ghana", "kenya"],
+      "africaRegionKeys": ["west_africa", "east_africa"],
+      "verifiedTagKeys": ["factory_audit", "trade_assurance"],
+      "exportYears": 11,
+      "keywordKeys": ["pump", "irrigation", "agro-processing", "spare parts"],
+      "keywords": ["pump", "irrigation", "agro-processing", "spare parts"],
+      "scoreHint": {
+        "zh": "更适合农业与水系统相关招标。",
+        "en": "Best fit for irrigation and water-system tenders."
+      }
+    },
+    {
+      "id": "sp-003",
+      "company": {
+        "zh": "江苏桥电变压器制造",
+        "en": "Jiangsu VoltBridge Transformer Works"
+      },
+      "companyShort": {
+        "zh": "桥电变压器",
+        "en": "VoltBridge"
+      },
+      "city": { "zh": "扬州", "en": "Yangzhou" },
+      "province": { "zh": "江苏", "en": "Jiangsu" },
+      "sectorKeys": ["transformers"],
+      "productFocus": {
+        "zh": "主营中压变压器、变电站集成和保护柜。",
+        "en": "Focus on medium-voltage transformers, substations and protection cabinets."
+      },
+      "certifications": ["IEC", "ISO9001", "KEMA"],
+      "monthlyCapacity": 360,
+      "leadDays": 58,
+      "responseHours": 12,
+      "languages": ["English"],
+      "africaMarketKeys": ["egypt", "algeria", "morocco"],
+      "africaRegionKeys": ["north_africa"],
+      "verifiedTagKeys": ["factory_audit", "epc_support"],
+      "exportYears": 14,
+      "keywordKeys": ["transformer", "medium voltage", "substation", "switchgear"],
+      "keywords": ["transformer", "medium voltage", "substation", "switchgear"],
+      "scoreHint": {
+        "zh": "更适合高压配电和工业园公用事业项目。",
+        "en": "Strong fit for utility and industrial distribution tenders."
+      }
+    },
+    {
+      "id": "sp-004",
+      "company": {
+        "zh": "青岛匠装自动化",
+        "en": "Qingdao PackForge Automation"
+      },
+      "companyShort": {
+        "zh": "匠装自动化",
+        "en": "PackForge"
+      },
+      "city": { "zh": "青岛", "en": "Qingdao" },
+      "province": { "zh": "山东", "en": "Shandong" },
+      "sectorKeys": ["packaging_machinery"],
+      "productFocus": {
+        "zh": "主营食品级包装线、输送系统和冷链监测。",
+        "en": "Focus on food-grade packing lines, conveyors and cold-chain monitoring."
+      },
+      "certifications": ["CE", "ISO9001", "Food Grade QA"],
+      "monthlyCapacity": 620,
+      "leadDays": 47,
+      "responseHours": 10,
+      "languages": ["English"],
+      "africaMarketKeys": ["ghana", "cote_divoire", "nigeria"],
+      "africaRegionKeys": ["west_africa"],
+      "verifiedTagKeys": ["factory_audit", "oem_odm"],
+      "exportYears": 8,
+      "keywordKeys": ["packaging", "cold-chain", "food grade", "automation"],
+      "keywords": ["packaging", "cold-chain", "food grade", "automation"],
+      "scoreHint": {
+        "zh": "最适合食品加工和出口包装类项目。",
+        "en": "Best fit for export-packaging and food processing opportunities."
+      }
+    },
+    {
+      "id": "sp-005",
+      "company": {
+        "zh": "宁波跨工联合采购中心",
+        "en": "Ningbo TradeSpan Sourcing Hub"
+      },
+      "companyShort": {
+        "zh": "跨工联合",
+        "en": "TradeSpan"
+      },
+      "city": { "zh": "宁波", "en": "Ningbo" },
+      "province": { "zh": "浙江", "en": "Zhejiang" },
+      "sectorKeys": ["solar_equipment", "industrial_pumps", "packaging_machinery"],
+      "productFocus": {
+        "zh": "跨品类联合采购、文档整合与投标支持能力强。",
+        "en": "Strong at cross-category sourcing, documentation assembly and tender response support."
+      },
+      "certifications": ["ISO9001", "CE"],
+      "monthlyCapacity": 900,
+      "leadDays": 60,
+      "responseHours": 4,
+      "languages": ["English", "French"],
+      "africaMarketKeys": ["kenya", "ghana", "egypt", "nigeria"],
+      "africaRegionKeys": ["east_africa", "west_africa", "north_africa"],
+      "verifiedTagKeys": ["trade_assurance", "multi_factory"],
+      "exportYears": 6,
+      "keywordKeys": ["tender", "documentation", "aggregation", "compliance"],
+      "keywords": ["tender", "documentation", "aggregation", "compliance"],
+      "scoreHint": {
+        "zh": "适合作为多品类项目的协调型候选。",
+        "en": "Good fit as a coordinator for multi-category sourcing packages."
+      }
+    },
+    {
+      "id": "sp-006",
+      "company": {
+        "zh": "佛山峰网电气",
+        "en": "Foshan GridPeak Electrical"
+      },
+      "companyShort": {
+        "zh": "峰网电气",
+        "en": "GridPeak"
+      },
+      "city": { "zh": "佛山", "en": "Foshan" },
+      "province": { "zh": "广东", "en": "Guangdong" },
+      "sectorKeys": ["transformers", "solar_equipment"],
+      "productFocus": {
+        "zh": "主营紧凑型变电站、开关柜和储能一体化单元。",
+        "en": "Focus on compact substations, switchgear and utility-scale storage integration."
+      },
+      "certifications": ["IEC", "ISO9001", "CE"],
+      "monthlyCapacity": 420,
+      "leadDays": 64,
+      "responseHours": 16,
+      "languages": ["English"],
+      "africaMarketKeys": ["egypt", "kenya"],
+      "africaRegionKeys": ["north_africa", "east_africa"],
+      "verifiedTagKeys": ["factory_audit"],
+      "exportYears": 10,
+      "keywordKeys": ["transformer", "switchgear", "substation", "solar"],
+      "keywords": ["transformer", "switchgear", "substation", "solar"],
+      "scoreHint": {
+        "zh": "适合配电与光储结合型项目。",
+        "en": "Best fit for distribution and solar-storage hybrid projects."
+      }
+    }
+  ],
+  "runtime": {
+    "schemaVersion": 4,
+    "lastTenderId": "td-001",
+    "lastSupplierId": "sp-001",
+    "shortlists": [
+      {
+        "id": "sl-001",
+        "tenderId": "td-001",
+        "supplierId": "sp-001",
+        "note": "优先联系，适合做首轮技术澄清与样品计划。",
+        "score": 96,
+        "createdAt": "2026-05-21T08:30:00.000Z"
+      },
+      {
+        "id": "sl-002",
+        "tenderId": "td-003",
+        "supplierId": "sp-003",
+        "note": "适合进入 FAT 方案沟通。",
+        "score": 94,
+        "createdAt": "2026-05-21T09:10:00.000Z"
+      }
+    ]
+  }
+}

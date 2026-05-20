@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>China Supplier Network</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-page="china" data-default-lang="zh">
+    <div class="shell">
+      <header id="site-header"></header>
+      <main class="page">
+        <section class="hero">
+          <div class="hero-copy">
+            <p id="hero-kicker" class="kicker"></p>
+            <h1 id="hero-title"></h1>
+            <p id="hero-text" class="hero-text"></p>
+            <div id="flow-steps" class="flow-steps"></div>
+          </div>
+          <aside class="hero-aside">
+            <div id="stats-grid" class="stats-grid"></div>
+          </aside>
+        </section>
+
+        <section class="content-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p id="supplier-kicker" class="kicker"></p>
+                <h2 id="supplier-list-title"></h2>
+              </div>
+            </div>
+            <form id="china-filters" class="filter-bar">
+              <select id="china-sector" name="sector"></select>
+              <select id="china-cert" name="cert"></select>
+              <select id="china-market" name="market"></select>
+            </form>
+            <div id="supplier-list" class="card-list"></div>
+          </section>
+
+          <aside class="panel detail-panel">
+            <div class="panel-head">
+              <div>
+                <p id="supplier-detail-kicker" class="kicker"></p>
+                <h2 id="supplier-detail-title"></h2>
+              </div>
+            </div>
+            <div id="supplier-detail"></div>
+            <div class="subpanel">
+              <div class="subpanel-head">
+                <h3 id="supplier-match-title"></h3>
+              </div>
+              <div id="supplier-match-list" class="mini-list"></div>
+            </div>
+            <div class="subpanel">
+              <div class="subpanel-head">
+                <h3 id="china-shortlist-title"></h3>
+              </div>
+              <form id="china-shortlist-form" class="mini-form">
+                <textarea id="china-shortlist-note" rows="3"></textarea>
+                <button id="china-shortlist-button" class="primary-button" type="submit"></button>
+                <p id="china-shortlist-feedback" class="feedback"></p>
+              </form>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>

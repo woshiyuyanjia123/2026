@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 4,
+  "lastTenderId": "td-001",
+  "lastSupplierId": "sp-001",
+  "shortlists": [
+    {
+      "id": "sl-1001",
+      "tenderId": "td-001",
+      "supplierId": "sp-001",
+      "note": "Priority supplier for East Africa launch.",
+      "score": 98,
+      "createdAt": "2026-05-18T08:30:00.000Z"
+    },
+    {
+      "id": "sl-1002",
+      "tenderId": "td-003",
+      "supplierId": "sp-003",
+      "note": "Transformer line fits utility bidding package.",
+      "score": 96,
+      "createdAt": "2026-05-18T10:10:00.000Z"
+    }
+  ]
+}

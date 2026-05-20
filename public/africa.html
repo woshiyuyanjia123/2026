@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Africa Tender Board</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-page="africa" data-default-lang="en">
+    <div class="shell">
+      <header id="site-header"></header>
+      <main class="page">
+        <section class="hero">
+          <div class="hero-copy">
+            <p id="hero-kicker" class="kicker"></p>
+            <h1 id="hero-title"></h1>
+            <p id="hero-text" class="hero-text"></p>
+            <div id="flow-steps" class="flow-steps"></div>
+          </div>
+          <aside class="hero-aside">
+            <div id="stats-grid" class="stats-grid"></div>
+          </aside>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p id="region-kicker" class="kicker"></p>
+              <h2 id="region-title"></h2>
+            </div>
+          </div>
+          <div id="region-grid" class="region-grid"></div>
+        </section>
+
+        <section class="content-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p id="tender-kicker" class="kicker"></p>
+                <h2 id="tender-list-title"></h2>
+              </div>
+            </div>
+            <form id="africa-filters" class="filter-bar">
+              <select id="filter-region" name="region"></select>
+              <select id="filter-country" name="country"></select>
+              <select id="filter-sector" name="sector"></select>
+            </form>
+            <div id="tender-list" class="card-list"></div>
+          </section>
+
+          <aside class="panel detail-panel">
+            <div class="panel-head">
+              <div>
+                <p id="detail-kicker" class="kicker"></p>
+                <h2 id="detail-title"></h2>
+              </div>
+            </div>
+            <div id="tender-detail"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
