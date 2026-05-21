@@ -10,7 +10,7 @@ const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = path.join(ROOT, "data");
 const SEED_FILE = path.join(DATA_DIR, "demo-seed.json");
 const RUNTIME_FILE = path.join(DATA_DIR, "demo-runtime.json");
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
 const COMPRESSIBLE_EXTENSIONS = new Set([".html", ".css", ".js", ".json", ".txt", ".svg"]);
 
 const MIME_TYPES = {
@@ -332,6 +332,9 @@ const PAGE_MAP = {
   "/opportunities": "opportunities.html",
   "/participants": "participants.html",
   "/match": "match.html",
+  "/compare": "compare.html",
+  "/rfq": "rfq.html",
+  "/thank-you": "thank-you.html",
   "/solutions": "solutions.html",
   "/how-it-works": "how-it-works.html",
   "/contact": "contact.html",
@@ -358,6 +361,7 @@ function normalizeRuntime(runtime, fallback) {
     shortlists: Array.isArray(runtime.shortlists) ? runtime.shortlists : clone(fallback.shortlists || []),
     contactLeads: Array.isArray(runtime.contactLeads) ? runtime.contactLeads : [],
     unlockRequests: Array.isArray(runtime.unlockRequests) ? runtime.unlockRequests : [],
+    rfqRequests: Array.isArray(runtime.rfqRequests) ? runtime.rfqRequests : [],
     leadRecords: Array.isArray(runtime.leadRecords) ? runtime.leadRecords : [],
     unlockRecords: Array.isArray(runtime.unlockRecords) ? runtime.unlockRecords : [],
     compareSelections: Array.isArray(runtime.compareSelections) ? runtime.compareSelections : []
@@ -1655,6 +1659,229 @@ function appendUnlockRequestRich(runtime, body) {
   return { ...record, status: unlockRecord.status, nextStep: unlockRecord.nextStep };
 }
 
+function splitParamList(value) {
+  return String(value || "")
+    .split(",")
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function uniqueParticipantIds(params, runtime) {
+  const explicit = [
+    ...splitParamList(params.participantIds),
+    ...splitParamList(params.participantId),
+    ...splitParamList(params.supplierIds),
+    ...splitParamList(params.supplierId)
+  ];
+  const runtimeIds = (runtime.compareSelections || []).map(item => item.supplierId).filter(Boolean);
+  return [...new Set(explicit.length ? explicit : runtimeIds)].slice(0, 3);
+}
+
+function buildWorkspaceSummary(params, compareItems) {
+  return {
+    compareCount: compareItems.length,
+    shortlistCount: Number(params.shortlistCount || 0),
+    rfqDraftCount: Number(params.rfqDraftCount || 0)
+  };
+}
+
+function deriveRecommendedAction(items, mode, lang) {
+  if (!items.length) {
+    return {
+      code: "explore",
+      label: lang === "zh" ? "先筛选候选参与方" : "Screen candidates first"
+    };
+  }
+  const top = items[0];
+  if (mode === "investment") {
+    return {
+      code: "cooperation",
+      label: lang === "zh" ? "优先发起合作沟通" : "Prioritize cooperation outreach"
+    };
+  }
+  if ((top.score || 0) >= 90 && top.certifications?.length) {
+    return {
+      code: "rfq",
+      label: lang === "zh" ? "优先发起 RFQ / 询盘" : "Prioritize sending an RFQ"
+    };
+  }
+  if ((top.score || 0) >= 80) {
+    return {
+      code: "unlock",
+      label: lang === "zh" ? "先解锁完整案例包" : "Unlock the full case pack first"
+    };
+  }
+  return {
+    code: "compare",
+    label: lang === "zh" ? "先加入对比并继续筛选" : "Add to compare and continue screening"
+  };
+}
+
+function buildComparePayloadV2(params, runtime) {
+  const lang = pickLang(params.lang, "en");
+  const participantIds = uniqueParticipantIds(params, runtime);
+  const activeTender = params.tenderId ? tenderMap[params.tenderId] : null;
+  const activeProject = params.projectId ? projectMap[params.projectId] : (activeTender ? projectMap[activeTender.projectId] : null);
+  const compareItems = participantIds
+    .map(participantId => {
+      const supplier = supplierMap[participantId];
+      if (!supplier) return null;
+      const localized = localizeSupplier(supplier, lang);
+      const score = activeTender ? computeMatch(activeTender, supplier, lang) : null;
+      return {
+        id: localized.id,
+        slug: localized.slug,
+        company: localized.company,
+        roleLabel: localized.roleLabel,
+        verification: verificationLabel(lang, "standard"),
+        certifications: localized.certifications,
+        regions: localized.africaRegions,
+        readiness: localized.verifiedTags,
+        capacity: `${localized.monthlyCapacity}/month`,
+        leadDays: localized.leadDays,
+        responseHours: localized.responseHours,
+        score: score?.totalScore || 0,
+        compareFor: activeTender ? t(activeTender.title, lang) : "",
+        ctas: {
+          contactHref: `/contact?participantId=${localized.id}${activeProject ? `&projectId=${activeProject.id}` : ""}${activeTender ? `&tenderId=${activeTender.id}` : ""}${params.mode ? `&mode=${params.mode}` : ""}`,
+          unlockHref: `/unlock?asset=${localized.asset}&participantId=${localized.id}${activeProject ? `&projectId=${activeProject.id}` : ""}${activeTender ? `&tenderId=${activeTender.id}` : ""}${params.mode ? `&mode=${params.mode}` : ""}`,
+          participantHref: `/participants/${localized.slug}`,
+          rfqHref: `/rfq?participantIds=${localized.id}${activeProject ? `&projectId=${activeProject.id}` : ""}${activeTender ? `&tenderId=${activeTender.id}` : ""}${params.mode ? `&mode=${params.mode}` : ""}`
+        }
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 3);
+
+  return {
+    lang,
+    items: compareItems,
+    context: {
+      tenderId: activeTender?.id || "",
+      tenderTitle: activeTender ? t(activeTender.title, lang) : "",
+      projectId: activeProject?.id || "",
+      projectName: activeProject ? t(activeProject.name, lang) : "",
+      mode: params.mode || activeTender?.mode || ""
+    },
+    workspaceSummary: buildWorkspaceSummary(params, compareItems),
+    recommendedAction: deriveRecommendedAction(compareItems, params.mode || activeTender?.mode || "", lang),
+    dimensions: [
+      lang === "zh" ? "角色适配" : "Role fit",
+      lang === "zh" ? "资质与认证" : "Credentials",
+      lang === "zh" ? "交付能力" : "Delivery capacity",
+      lang === "zh" ? "区域经验" : "Regional coverage",
+      lang === "zh" ? "响应准备度" : "Response readiness"
+    ]
+  };
+}
+
+function buildMatchPayloadRichV2(params, runtime) {
+  const base = buildMatchPayload(params, runtime);
+  const compareItems = uniqueParticipantIds(params, runtime)
+    .map(participantId => {
+      const supplier = supplierMap[participantId];
+      if (!supplier) return null;
+      const localized = localizeSupplier(supplier, base.lang);
+      return {
+        id: localized.id,
+        slug: localized.slug,
+        name: localized.company,
+        roleLabel: localized.roleLabel,
+        score: base.activeTender ? computeMatch(tenderMap[base.activeTender.id], supplier, base.lang).totalScore : 0,
+        href: `/participants/${localized.slug}`
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return {
+    ...base,
+    sortMode: params.sortMode || "best_overall",
+    workspaceState: buildWorkspaceSummary(params, compareItems),
+    compareCandidates: compareItems,
+    recommendedActionPerCandidate: base.matches.map(item => ({
+      participantId: item.supplier.id,
+      action: deriveRecommendedAction([
+        {
+          score: item.score.totalScore,
+          certifications: item.supplier.certifications
+        }
+      ], base.activeTender.mode, base.lang).label
+    })),
+    nextActions: [
+      {
+        label: base.lang === "zh" ? "发起 RFQ / 询盘" : "Send RFQ / inquiry",
+        href: `/rfq?tenderId=${base.activeTender.id}&projectId=${base.activeTender.projectId}&mode=${base.activeTender.mode}${base.selectedParticipant ? `&participantIds=${base.selectedParticipant.id}` : ""}`
+      },
+      {
+        label: base.lang === "zh" ? "申请完整资料" : "Unlock full pack",
+        href: `/unlock?asset=${base.activeTender.asset}&tenderId=${base.activeTender.id}&projectId=${base.activeTender.projectId}&mode=${base.activeTender.mode}${base.selectedParticipant ? `&participantId=${base.selectedParticipant.id}` : ""}`
+      }
+    ]
+  };
+}
+
+function buildLeadContextPayloadV2(params, runtime) {
+  const lang = pickLang(params.lang, "zh");
+  const context = buildContactContext(params, lang);
+  const comparePayload = buildComparePayloadV2(params, runtime);
+  const selectedParticipants = uniqueParticipantIds(params, runtime)
+    .map(participantId => supplierMap[participantId])
+    .filter(Boolean)
+    .map(item => {
+      const localized = localizeSupplier(item, lang);
+      return {
+        id: localized.id,
+        slug: localized.slug,
+        name: localized.company,
+        roleLabel: localized.roleLabel
+      };
+    });
+  return {
+    ...context,
+    compare: comparePayload.items,
+    selectedParticipants,
+    workspaceSummary: buildWorkspaceSummary(params, comparePayload.items),
+    recommendedAction: comparePayload.recommendedAction,
+    nextStep: context.participantId ? nextStepLabel(lang, "contact") : nextStepLabel(lang, "unlock")
+  };
+}
+
+function appendRfqRequest(runtime, body) {
+  const participantIds = [...new Set([
+    ...splitParamList(body.participantIds),
+    ...splitParamList(body.participantId),
+    ...splitParamList(body.supplierIds),
+    ...splitParamList(body.supplierId)
+  ])].slice(0, 3);
+  const record = {
+    id: `rfq-${Date.now()}`,
+    name: body.name,
+    company: body.company,
+    title: body.title || "",
+    contact: body.contact,
+    inquiryType: body.inquiryType || "",
+    demandSummary: body.demandSummary || "",
+    targetTimeline: body.targetTimeline || "",
+    note: body.note || "",
+    projectId: body.projectId || "",
+    tenderId: body.tenderId || "",
+    participantIds,
+    mode: body.mode || "",
+    createdAt: new Date().toISOString()
+  };
+  runtime.rfqRequests.unshift(record);
+  runtime.rfqRequests = runtime.rfqRequests.slice(0, 100);
+  writeRuntime(runtime);
+  return {
+    ...record,
+    status: "qualified",
+    nextStep: nextStepLabel(pickLang(body.lang, "zh"), "contact"),
+    submittedParticipants: participantIds
+  };
+}
+
 function resolvePublicFile(pathname) {
   const relativePath = path.normalize(pathname.replace(/^\/+/, ""));
   const filePath = path.join(PUBLIC_DIR, relativePath);
@@ -1714,7 +1941,7 @@ function requestHandler(req, res) {
   }
 
   if (pathname === "/api/match" && req.method === "GET") {
-    sendJson(req, res, 200, buildMatchPayloadRich(params, runtime));
+    sendJson(req, res, 200, buildMatchPayloadRichV2(params, runtime));
     return;
   }
 
@@ -1724,12 +1951,39 @@ function requestHandler(req, res) {
   }
 
   if ((pathname === "/api/contact-context" || pathname === "/api/lead-context") && req.method === "GET") {
-    sendJson(req, res, 200, buildLeadContextPayload(params, runtime));
+    sendJson(req, res, 200, buildLeadContextPayloadV2(params, runtime));
     return;
   }
 
   if (pathname === "/api/compare" && req.method === "GET") {
-    sendJson(req, res, 200, buildComparePayload(params, runtime));
+    sendJson(req, res, 200, buildComparePayloadV2(params, runtime));
+    return;
+  }
+
+  if (pathname === "/api/leads/rfq" && req.method === "POST") {
+    parseBody(req)
+      .then(body => {
+        if (!body.name || !body.company || !body.contact) {
+          sendJson(req, res, 400, { error: "Missing RFQ fields" });
+          return;
+        }
+        const record = appendRfqRequest(runtime, body);
+        sendJson(req, res, 201, {
+          ok: true,
+          record,
+          rfqId: record.id,
+          status: record.status,
+          nextStep: record.nextStep,
+          submittedParticipants: record.submittedParticipants,
+          message: pickLang(body.lang, "zh") === "zh"
+            ? "RFQ / 询盘已提交，顾问将按项目与参与方继续分发。"
+            : "Your RFQ has been submitted and queued for consultant follow-up."
+        });
+      })
+      .catch(error => {
+        console.error("[api] rfq request failed", error);
+        sendJson(req, res, 400, { error: error.message });
+      });
     return;
   }
 
@@ -1813,7 +2067,7 @@ function requestHandler(req, res) {
         sendJson(req, res, 201, {
           ok: true,
           record,
-          compare: buildComparePayload(params, runtime)
+          compare: buildComparePayloadV2(params, runtime)
         });
       })
       .catch(error => {

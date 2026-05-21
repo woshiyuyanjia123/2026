@@ -1580,6 +1580,797 @@ async function renderUnlockV2() {
   });
 }
 
+Object.assign(UI.zh, {
+  workspace: "个人工作台",
+  rfqTitle: "RFQ / 询盘",
+  rfqSubmit: "提交 RFQ / 询盘",
+  thankYouTitle: "提交成功",
+  thankYouText: "你的 RFQ / 询盘已进入后续分发流程。",
+  genericContact: "通用合作联系",
+  addWorkspace: "加入工作台",
+  sendRfq: "发起 RFQ",
+  requestQuote: "请求报价",
+  requestCoop: "合作沟通",
+  requestClarification: "技术澄清",
+  requestFullPack: "完整资料包",
+  demandSummary: "需求摘要",
+  targetTimeline: "目标时间",
+  selectedParticipants: "已选参与方",
+  workspaceEmpty: "当前工作台为空。",
+  viewProfile: "查看档案",
+  unlockCasePack: "解锁案例包",
+  comparePageTitle: "参与方对比",
+  recommendedAction: "推荐动作"
+});
+
+Object.assign(UI.en, {
+  workspace: "Workspace",
+  rfqTitle: "RFQ / Inquiry",
+  rfqSubmit: "Submit RFQ / inquiry",
+  thankYouTitle: "Submission received",
+  thankYouText: "Your RFQ has entered the follow-up routing flow.",
+  genericContact: "General cooperation contact",
+  addWorkspace: "Add to workspace",
+  sendRfq: "Send RFQ",
+  requestQuote: "Request quote",
+  requestCoop: "Request cooperation",
+  requestClarification: "Technical clarification",
+  requestFullPack: "Request full pack",
+  demandSummary: "Demand summary",
+  targetTimeline: "Target timeline",
+  selectedParticipants: "Selected participants",
+  workspaceEmpty: "Workspace is currently empty.",
+  viewProfile: "View profile",
+  unlockCasePack: "Unlock case pack",
+  comparePageTitle: "Compare participants",
+  recommendedAction: "Recommended action"
+});
+
+const WORKSPACE_KEY = "energyPortalWorkspaceV1";
+
+function defaultWorkspace() {
+  return { compare: [], shortlist: [], rfqDraft: null };
+}
+
+function readWorkspace() {
+  try {
+    const raw = localStorage.getItem(WORKSPACE_KEY);
+    if (!raw) return defaultWorkspace();
+    const parsed = JSON.parse(raw);
+    return {
+      compare: Array.isArray(parsed.compare) ? parsed.compare.slice(0, 3) : [],
+      shortlist: Array.isArray(parsed.shortlist) ? parsed.shortlist : [],
+      rfqDraft: parsed.rfqDraft || null
+    };
+  } catch {
+    return defaultWorkspace();
+  }
+}
+
+function writeWorkspace(next) {
+  const value = {
+    compare: Array.isArray(next.compare) ? next.compare.slice(0, 3) : [],
+    shortlist: Array.isArray(next.shortlist) ? next.shortlist : [],
+    rfqDraft: next.rfqDraft || null
+  };
+  localStorage.setItem(WORKSPACE_KEY, JSON.stringify(value));
+  renderWorkspaceTray();
+  return value;
+}
+
+function withLang(rawUrl, extra = {}) {
+  const url = new URL(rawUrl, window.location.origin);
+  const params = new URLSearchParams(url.search);
+  params.set("lang", currentLang);
+  Object.entries(extra).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") params.set(key, value);
+  });
+  const query = params.toString();
+  return `${url.pathname}${query ? `?${query}` : ""}`;
+}
+
+function workspaceParticipantIds() {
+  return readWorkspace().compare.map(item => item.participantId).filter(Boolean);
+}
+
+function workspaceParams(extra = {}) {
+  const workspace = readWorkspace();
+  const base = Object.fromEntries(currentParams.entries());
+  const participantIds = extra.participantIds !== undefined
+    ? extra.participantIds
+    : workspaceParticipantIds().join(",");
+  return getParams({
+    ...base,
+    ...extra,
+    participantIds,
+    shortlistCount: workspace.shortlist.length,
+    rfqDraftCount: workspace.rfqDraft ? 1 : 0
+  });
+}
+
+function addCompareLocal(item) {
+  const workspace = readWorkspace();
+  workspace.compare = [
+    item,
+    ...workspace.compare.filter(entry => entry.participantId !== item.participantId)
+  ].slice(0, 3);
+  writeWorkspace(workspace);
+}
+
+function addShortlistLocal(item) {
+  const workspace = readWorkspace();
+  workspace.shortlist = [
+    item,
+    ...workspace.shortlist.filter(entry => !(entry.participantId === item.participantId && entry.tenderId === item.tenderId))
+  ].slice(0, 10);
+  writeWorkspace(workspace);
+}
+
+function removeCompareLocal(participantId) {
+  const workspace = readWorkspace();
+  workspace.compare = workspace.compare.filter(item => item.participantId !== participantId);
+  writeWorkspace(workspace);
+}
+
+function removeShortlistLocal(participantId, tenderId = "") {
+  const workspace = readWorkspace();
+  workspace.shortlist = workspace.shortlist.filter(item => !(item.participantId === participantId && item.tenderId === tenderId));
+  writeWorkspace(workspace);
+}
+
+function setRfqDraftLocal(draft) {
+  const workspace = readWorkspace();
+  workspace.rfqDraft = draft;
+  writeWorkspace(workspace);
+}
+
+function clearRfqDraftLocal() {
+  const workspace = readWorkspace();
+  workspace.rfqDraft = null;
+  writeWorkspace(workspace);
+}
+
+function currentModeLabel(mode) {
+  return mode === "investment" ? ui("modeInvestment") : ui("modeTender");
+}
+
+function renderWorkspaceTray() {
+  let tray = document.getElementById("workspace-tray");
+  const workspace = readWorkspace();
+  const draftProject = workspace.rfqDraft?.projectId || currentParams.get("projectId") || "";
+  const draftTender = workspace.rfqDraft?.tenderId || currentParams.get("tenderId") || "";
+  const draftMode = workspace.rfqDraft?.mode || currentParams.get("mode") || "";
+  if (!tray) {
+    tray = document.createElement("aside");
+    tray.id = "workspace-tray";
+    document.body.appendChild(tray);
+  }
+  tray.className = "workspace-tray";
+  tray.innerHTML = `
+    <div class="workspace-pill">${esc(ui("workspace"))}</div>
+    <div class="workspace-row">
+      <a class="workspace-chip" href="${withLang("/compare", { participantIds: workspace.compare.map(item => item.participantId).join(","), projectId: draftProject, tenderId: draftTender, mode: draftMode })}">
+        <strong>${workspace.compare.length}</strong><span>Compare</span>
+      </a>
+      <a class="workspace-chip" href="${withLang("/match", { participantIds: workspace.compare.map(item => item.participantId).join(","), projectId: draftProject, tenderId: draftTender, mode: draftMode })}">
+        <strong>${workspace.shortlist.length}</strong><span>${esc(ui("shortlist"))}</span>
+      </a>
+      <a class="workspace-chip" href="${withLang("/rfq", { participantIds: workspace.compare.map(item => item.participantId).join(","), projectId: draftProject, tenderId: draftTender, mode: draftMode })}">
+        <strong>${workspace.rfqDraft ? 1 : 0}</strong><span>RFQ</span>
+      </a>
+    </div>
+  `;
+}
+
+function primaryActionLinksV3(ctas = {}, labels = {}) {
+  return `
+    <div class="cta-row">
+      ${ctas.matchHref ? `<a class="button primary" href="${withLang(ctas.matchHref)}">${esc(labels.match || ui("openMatch"))}</a>` : ""}
+      ${ctas.inquiryHref || ctas.contactHref ? `<a class="button ghost" href="${withLang(ctas.inquiryHref || ctas.contactHref)}">${esc(labels.inquiry || ui("inquiryNow"))}</a>` : ""}
+      ${ctas.unlockHref ? `<a class="button soft" href="${withLang(ctas.unlockHref)}">${esc(labels.unlock || ui("unlockNow"))}</a>` : ""}
+    </div>
+  `;
+}
+
+function rfqTypeOptions() {
+  return [
+    { value: "quote", label: ui("requestQuote") },
+    { value: "cooperation", label: ui("requestCoop") },
+    { value: "clarification", label: ui("requestClarification") },
+    { value: "full_pack", label: ui("requestFullPack") }
+  ];
+}
+
+function sortOpportunityItems(items, sortBy) {
+  const list = [...items];
+  if (sortBy === "deadline") return list.sort((a, b) => String(a.deadline).localeCompare(String(b.deadline)));
+  if (sortBy === "newest") return list.reverse();
+  if (sortBy === "epc") return list.sort((a, b) => Number((b.tags || []).includes("EPC")) - Number((a.tags || []).includes("EPC")));
+  if (sortBy === "investment") return list.sort((a, b) => Number(b.mode === "investment") - Number(a.mode === "investment"));
+  return list.sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+}
+
+function sortMatches(items, sortMode) {
+  const list = [...items];
+  if (sortMode === "credentials") return list.sort((a, b) => (b.score.certificationScore || 0) - (a.score.certificationScore || 0));
+  if (sortMode === "delivery_speed") return list.sort((a, b) => (b.score.deliveryScore || 0) - (a.score.deliveryScore || 0));
+  if (sortMode === "regional_fit") return list.sort((a, b) => (b.score.regionalScore || 0) - (a.score.regionalScore || 0));
+  return list.sort((a, b) => (b.score.totalScore || 0) - (a.score.totalScore || 0));
+}
+
+function recommendedActionLabel(item, mode) {
+  if (mode === "investment") return currentLang === "zh" ? "建议先发起合作沟通" : "Recommended: request cooperation";
+  if ((item.score.totalScore || 0) >= 90) return currentLang === "zh" ? "建议直接发起 RFQ" : "Recommended: send RFQ";
+  if ((item.score.totalScore || 0) >= 80) return currentLang === "zh" ? "建议先解锁案例包" : "Recommended: unlock case pack";
+  return currentLang === "zh" ? "建议先加入对比" : "Recommended: add to compare";
+}
+
+async function renderOpportunitiesV3() {
+  const params = Object.fromEntries(currentParams.entries());
+  const sortBy = currentParams.get("sort") || "featured";
+  const data = await fetchJson(`/api/opportunities?${workspaceParams(params).toString()}`);
+  const items = sortOpportunityItems(data.items, sortBy);
+  mount(`
+    ${sectionTitle("Portal", data.hero.title, data.hero.text)}
+    ${filterBar({
+      id: "opportunity-filters",
+      search: data.filters.search,
+      selects: [
+        { name: "mode", value: data.filters.mode, options: data.filters.modes },
+        { name: "region", value: data.filters.region, options: data.filters.regions },
+        { name: "country", value: data.filters.country, options: data.filters.countries },
+        { name: "sort", value: sortBy, options: [
+          { value: "featured", label: "Featured" },
+          { value: "deadline", label: "Deadline" },
+          { value: "newest", label: "Newest" },
+          { value: "epc", label: "Best for EPC" },
+          { value: "investment", label: "Best for Investment" }
+        ] }
+      ]
+    })}
+    <section class="card-grid card-grid-2">
+      ${items.length ? items.map(item => `
+        <article class="portal-card tall-card">
+          <div class="card-top">
+            ${pill(item.verification || ui("verifiedLabel"))}
+            ${pill(item.region, "subtle")}
+          </div>
+          <h3>${esc(item.title)}</h3>
+          <p>${esc(item.description)}</p>
+          <div class="tag-cloud">${(item.tags || []).map(tag).join("")}</div>
+          <div class="meta-stack">
+            <span>${esc(item.project?.name || "")}</span>
+            <span>${esc(item.tenderValue)}</span>
+            <span>${esc(item.deadline)}</span>
+          </div>
+          ${primaryActionLinksV3(item.primaryCtas, {
+            match: ui("openMatch"),
+            inquiry: ui("sendRfq"),
+            unlock: ui("unlockNow")
+          })}
+          <div class="link-row">
+            <a href="${withLang(item.href)}">${esc(ui("readMore"))}</a>
+            <button class="compare-trigger add-workspace-project" data-project="${esc(item.project?.id || "")}" data-tender="${esc(item.id)}" data-mode="${esc(item.mode)}">${esc(ui("addWorkspace"))}</button>
+          </div>
+        </article>
+      `).join("") : `<div class="empty-card">${esc(ui("noResults"))}</div>`}
+    </section>
+  `);
+  bindFilterForm("opportunity-filters", "/opportunities");
+  document.querySelectorAll(".add-workspace-project").forEach(button => {
+    button.addEventListener("click", () => {
+      setRfqDraftLocal({
+        projectId: button.dataset.project,
+        tenderId: button.dataset.tender,
+        mode: button.dataset.mode
+      });
+    });
+  });
+}
+
+async function renderOpportunityV3() {
+  const slug = slugFromPath(1);
+  const data = await fetchJson(`/api/opportunity?${workspaceParams({ slug }).toString()}`);
+  const item = data.item;
+  mount(`
+    ${breadcrumb(data.breadcrumb)}
+    <section class="detail-hero">
+      <div class="detail-main panel">
+        <div class="card-top">
+          ${pill(data.verification)}
+          ${pill(item.country, "subtle")}
+          ${pill(item.region, "subtle")}
+        </div>
+        <h1>${esc(item.title)}</h1>
+        <p class="lead">${esc(item.description)}</p>
+        <div class="summary-grid">
+          <article class="summary-box"><span>${esc(ui("projectOverview"))}</span><strong>${esc(item.project?.name || "-")}</strong></article>
+          <article class="summary-box"><span>${esc(ui("companyProfile"))}</span><strong>${esc(item.ownerCompany?.name || item.buyerName)}</strong></article>
+          <article class="summary-box"><span>Value</span><strong>${esc(item.tenderValue)}</strong></article>
+          <article class="summary-box"><span>Deadline</span><strong>${esc(item.deadline)}</strong></article>
+        </div>
+        <div class="action-rail">
+          <a class="button primary" href="${withLang("/match", { tenderId: item.id, projectId: item.projectId, mode: item.mode })}">${esc(ui("viewMatches"))}</a>
+          <a class="button ghost" href="${withLang("/rfq", { tenderId: item.id, projectId: item.projectId, mode: item.mode })}">${esc(ui("sendRfq"))}</a>
+          <a class="button soft" href="${withLang("/unlock", { asset: data.relatedAssets?.[0]?.href?.split("asset=")[1] || item.asset, tenderId: item.id, projectId: item.projectId, mode: item.mode })}">${esc(ui("unlockPack"))}</a>
+        </div>
+      </div>
+      <aside class="detail-side panel sticky-card">
+        <h3>${esc(ui("publicSummary"))}</h3>
+        <ul class="bullet-list">${data.timeline.map(line => `<li><strong>${esc(line.label)}:</strong> ${esc(line.value)}</li>`).join("")}</ul>
+      </aside>
+    </section>
+    <section class="detail-grid">
+      <section class="panel">${sectionTitle(ui("lots"), ui("lots"))}<ul class="bullet-list">${item.lots.map(line => `<li>${esc(line)}</li>`).join("")}</ul></section>
+      <section class="panel">${sectionTitle(ui("qualifications"), ui("qualifications"))}<ul class="bullet-list">${item.qualificationRequirements.map(line => `<li>${esc(line)}</li>`).join("")}</ul></section>
+      <section class="panel">${sectionTitle(ui("commercialTerms"), ui("commercialTerms"))}<ul class="bullet-list">${item.commercialTerms.map(line => `<li>${esc(line)}</li>`).join("")}</ul></section>
+      <section class="panel">${sectionTitle(ui("investmentHighlights"), ui("investmentHighlights"))}<ul class="bullet-list">${(item.highlights || []).map(line => `<li>${esc(line)}</li>`).join("")}${(item.project?.revenueModel || []).map(line => `<li>${esc(line)}</li>`).join("")}</ul></section>
+    </section>
+    <section class="panel">
+      ${sectionTitle(ui("participantPreview"), ui("participantPreview"))}
+      <div class="card-grid card-grid-3">
+        ${data.participantPreview.map(entry => `
+          <article class="portal-card compact-card">
+            <div class="card-top">${pill(entry.roleLabel)}${pill(String(entry.score), "score")}</div>
+            <h3>${esc(entry.name)}</h3>
+            <ul class="bullet-list">${entry.teaser.map(line => `<li>${esc(line)}</li>`).join("")}</ul>
+            <div class="link-row">
+              <a href="${withLang(entry.href)}">${esc(ui("viewProfile"))}</a>
+              <button class="compare-trigger opportunity-compare" data-participant="${esc(entry.id)}" data-project="${esc(item.projectId)}" data-tender="${esc(item.id)}" data-mode="${esc(item.mode)}">${esc(ui("compare"))}</button>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `);
+  document.querySelectorAll(".opportunity-compare").forEach(button => {
+    button.addEventListener("click", () => {
+      addCompareLocal({
+        participantId: button.dataset.participant,
+        projectId: button.dataset.project,
+        tenderId: button.dataset.tender,
+        mode: button.dataset.mode
+      });
+      setRfqDraftLocal({
+        projectId: button.dataset.project,
+        tenderId: button.dataset.tender,
+        mode: button.dataset.mode
+      });
+    });
+  });
+}
+
+async function renderParticipantsV3() {
+  const params = Object.fromEntries(currentParams.entries());
+  const data = await fetchJson(`/api/participants?${workspaceParams(params).toString()}`);
+  mount(`
+    ${sectionTitle("Portal", data.hero.title, data.hero.text)}
+    ${filterBar({
+      id: "participant-filters",
+      search: data.filters.search,
+      selects: [
+        { name: "role", value: data.filters.role, options: data.filters.roles },
+        { name: "sector", value: data.filters.sector, options: data.filters.sectors },
+        { name: "certification", value: data.filters.certification, options: data.filters.certifications },
+        { name: "readiness", value: data.filters.readiness, options: data.filters.readinessOptions }
+      ]
+    })}
+    <section class="card-grid card-grid-2">
+      ${data.items.length ? data.items.map(item => `
+        <article class="portal-card tall-card">
+          <div class="card-top">
+            ${pill(item.verification || ui("verifiedLabel"))}
+            ${pill(`${item.exportYears}y`, "subtle")}
+          </div>
+          <h3>${esc(item.company)}</h3>
+          <p>${esc(item.productFocus)}</p>
+          <div class="tag-cloud">${(item.roleTags || []).map(tag).join("")}</div>
+          <ul class="mini-list">
+            <li>${esc(item.city)}, ${esc(item.province)}</li>
+            <li>${esc(String(item.monthlyCapacity))}/month</li>
+            <li>${esc(String(item.leadDays))} days</li>
+          </ul>
+          <div class="cta-row">
+            <a class="button primary" href="${withLang(item.primaryCtas.matchHref)}">${esc(ui("viewProjects"))}</a>
+            <a class="button ghost" href="${withLang("/rfq", { participantIds: item.id })}">${esc(ui("sendRfq"))}</a>
+            <a class="button soft" href="${withLang(item.primaryCtas.unlockHref)}">${esc(ui("unlockCasePack"))}</a>
+          </div>
+          <div class="link-row">
+            <a href="${withLang(item.href)}">${esc(ui("readMore"))}</a>
+            <button class="compare-trigger participant-compare" data-participant="${esc(item.id)}">${esc(ui("compare"))}</button>
+            <button class="compare-trigger participant-shortlist" data-participant="${esc(item.id)}">${esc(ui("addShortlist"))}</button>
+          </div>
+        </article>
+      `).join("") : `<div class="empty-card">${esc(ui("noResults"))}</div>`}
+    </section>
+  `);
+  bindFilterForm("participant-filters", "/participants");
+  document.querySelectorAll(".participant-compare").forEach(button => {
+    button.addEventListener("click", () => addCompareLocal({ participantId: button.dataset.participant }));
+  });
+  document.querySelectorAll(".participant-shortlist").forEach(button => {
+    button.addEventListener("click", () => addShortlistLocal({ participantId: button.dataset.participant, tenderId: "", projectId: "", mode: "" }));
+  });
+}
+
+async function renderParticipantV3() {
+  const slug = slugFromPath(1);
+  const data = await fetchJson(`/api/participant?${workspaceParams({ slug }).toString()}`);
+  const item = data.item;
+  mount(`
+    ${breadcrumb(data.breadcrumb)}
+    <section class="detail-hero">
+      <div class="detail-main panel">
+        <div class="card-top">${pill(data.verification)}${pill(`${item.exportYears}y`, "subtle")}</div>
+        <h1>${esc(item.company)}</h1>
+        <p class="lead">${esc(item.productFocus)}</p>
+        <div class="summary-grid">
+          <article class="summary-box"><span>${esc(ui("companyProfile"))}</span><strong>${esc(item.companyProfile?.name || item.company)}</strong></article>
+          <article class="summary-box"><span>${esc(ui("capabilityHighlights"))}</span><strong>${esc(item.sectors.map(s => s.label).join(" / "))}</strong></article>
+          <article class="summary-box"><span>Lead Time</span><strong>${esc(String(item.leadDays))} days</strong></article>
+          <article class="summary-box"><span>Capacity</span><strong>${esc(String(item.monthlyCapacity))}/month</strong></article>
+        </div>
+        <div class="action-rail">
+          <button class="button primary participant-detail-compare" data-participant="${esc(item.id)}">${esc(ui("compare"))}</button>
+          <button class="button ghost participant-detail-shortlist" data-participant="${esc(item.id)}">${esc(ui("addShortlist"))}</button>
+          <a class="button soft" href="${withLang("/rfq", { participantIds: item.id })}">${esc(ui("sendRfq"))}</a>
+        </div>
+      </div>
+      <aside class="detail-side panel sticky-card">
+        <h3>${esc(currentLang === "zh" ? "Assessment Highlights" : "Assessment Highlights")}</h3>
+        <ul class="bullet-list">${(item.verifiedTags || []).map(line => `<li>${esc(line)}</li>`).join("")}</ul>
+        <h3>${esc(currentLang === "zh" ? "Capability Sheet" : "Capability Sheet")}</h3>
+        <div class="tag-cloud">${(item.companyProfile?.capabilities || []).map(tag).join("")}</div>
+      </aside>
+    </section>
+    <section class="detail-grid">
+      ${data.capabilityBlocks.map(block => `<section class="panel">${sectionTitle(block.title, block.title)}<div class="tag-cloud">${(block.items || []).map(tag).join("")}</div></section>`).join("")}
+      <section class="panel">${sectionTitle(ui("experienceCases"), ui("experienceCases"))}<ul class="bullet-list">${(item.experienceCases || []).map(line => `<li>${esc(line)}</li>`).join("")}</ul></section>
+      <section class="panel">${sectionTitle(ui("visitBrief"), ui("visitBrief"))}${item.visitBrief ? `<h3>${esc(ui("visitGoals"))}</h3><ul class="bullet-list">${(item.visitBrief.visitGoals || []).map(line => `<li>${esc(line)}</li>`).join("")}</ul><h3>${esc(ui("decisionChain"))}</h3><div class="tag-cloud">${(item.visitBrief.decisionMakers || []).map(tag).join("")}</div><h3>${esc(ui("cooperationSignals"))}</h3><ul class="bullet-list">${(item.visitBrief.coopSignals || []).map(line => `<li>${esc(line)}</li>`).join("")}</ul>` : `<p>${esc(ui("noVisitBrief"))}</p>`}</section>
+    </section>
+  `);
+  document.querySelector(".participant-detail-compare")?.addEventListener("click", () => addCompareLocal({ participantId: item.id }));
+  document.querySelector(".participant-detail-shortlist")?.addEventListener("click", () => addShortlistLocal({ participantId: item.id, tenderId: "", projectId: "", mode: "" }));
+}
+
+async function renderMatchV3() {
+  const params = Object.fromEntries(currentParams.entries());
+  const sortMode = currentParams.get("sortMode") || "best_overall";
+  const data = await fetchJson(`/api/match?${workspaceParams({ ...params, sortMode }).toString()}`);
+  const workspace = readWorkspace();
+  const matches = sortMatches(data.matches, sortMode);
+  mount(`
+    <section class="match-layout">
+      <aside class="panel sticky-card">
+        ${sectionTitle(ui("modeSwitch"), currentModeLabel(data.activeTender.mode))}
+        <div class="mode-stack">
+          ${data.opportunities.map(item => `<a class="mode-link ${item.id === data.activeTender.id ? "active" : ""}" href="${withLang("/match", { tenderId: item.id, mode: item.mode, participantIds: workspace.compare.map(entry => entry.participantId).join(",") })}"><strong>${esc(item.title)}</strong><span>${esc(item.modeLabel)}</span></a>`).join("")}
+        </div>
+        <div class="context-block"><h3>${esc(ui("currentOpportunity"))}</h3><p><a href="${withLang(`/opportunities/${data.activeTender.slug}`)}">${esc(data.activeTender.title)}</a></p></div>
+      </aside>
+      <section class="match-main">
+        <section class="panel">
+          ${sectionTitle(ui("rankingResults"), ui("rankingResults"), data.hero.text)}
+          <div class="sort-row">
+            <a href="${withLang("/match", { ...params, sortMode: "best_overall" })}" class="pill ${sortMode === "best_overall" ? "score" : ""}">Best overall</a>
+            <a href="${withLang("/match", { ...params, sortMode: "credentials" })}" class="pill ${sortMode === "credentials" ? "score" : ""}">Best credentials</a>
+            <a href="${withLang("/match", { ...params, sortMode: "delivery_speed" })}" class="pill ${sortMode === "delivery_speed" ? "score" : ""}">Best delivery speed</a>
+            <a href="${withLang("/match", { ...params, sortMode: "regional_fit" })}" class="pill ${sortMode === "regional_fit" ? "score" : ""}">Best regional fit</a>
+          </div>
+          <div class="match-cards">
+            ${matches.map(item => `
+              <article class="match-card panel">
+                <div class="card-top">${pill(item.supplier.roleLabel)}${pill(String(item.score.totalScore), "score")}</div>
+                <h3><a href="${withLang(item.ctas.participantHref)}">${esc(item.supplier.company)}</a></h3>
+                <p>${esc(recommendedActionLabel(item, data.activeTender.mode))}</p>
+                <div class="meter-group">${Object.entries(item.score.breakdown).map(([key, value]) => `<div class="meter-row"><span>${esc(key.replace("Score", ""))}</span><div class="meter"><i style="width:${Math.min(100, value * 3.125)}%"></i></div><strong>${esc(String(value))}</strong></div>`).join("")}</div>
+                <ul class="bullet-list">${item.score.reasons.map(line => `<li>${esc(line)}</li>`).join("")}</ul>
+                <div class="cta-row">
+                  <button class="button ghost match-compare" data-participant="${esc(item.supplier.id)}">${esc(ui("compare"))}</button>
+                  <button class="button soft match-shortlist" data-participant="${esc(item.supplier.id)}">${esc(ui("addShortlist"))}</button>
+                  <a class="button primary" href="${withLang("/rfq", { tenderId: data.activeTender.id, projectId: data.activeTender.projectId, participantIds: item.supplier.id, mode: data.activeTender.mode })}">${esc(ui("sendRfq"))}</a>
+                  <a class="button ghost" href="${withLang(item.ctas.unlockHref)}">${esc(ui("unlockCasePack"))}</a>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      </section>
+      <aside class="panel sticky-card">
+        ${sectionTitle(ui("workspace"), ui("workspace"), ui("shortlistHint"))}
+        <div class="context-block"><h3>Compare</h3>${workspace.compare.length ? workspace.compare.map(item => `<article class="mini-record"><strong>${esc(item.participantId)}</strong><button class="link-button remove-compare" data-participant="${esc(item.participantId)}">Remove</button></article>`).join("") : `<p>${esc(ui("workspaceEmpty"))}</p>`}</div>
+        <div class="context-block"><h3>${esc(ui("shortlist"))}</h3>${workspace.shortlist.length ? workspace.shortlist.map(item => `<article class="mini-record"><strong>${esc(item.participantId)}</strong><button class="link-button remove-shortlist" data-participant="${esc(item.participantId)}" data-tender="${esc(item.tenderId || "")}">Remove</button></article>`).join("") : `<p>${esc(ui("workspaceEmpty"))}</p>`}</div>
+        <div class="context-block"><h3>${esc(ui("recommendedAction"))}</h3><p>${esc((data.nextActions[0] || {}).label || "")}</p></div>
+        <div class="context-block">
+          <a class="button primary full" href="${withLang("/rfq", { tenderId: data.activeTender.id, projectId: data.activeTender.projectId, participantIds: workspace.compare.map(item => item.participantId).join(","), mode: data.activeTender.mode })}">${esc(ui("sendRfq"))}</a>
+          <a class="button ghost full" href="${withLang("/compare", { tenderId: data.activeTender.id, projectId: data.activeTender.projectId, participantIds: workspace.compare.map(item => item.participantId).join(","), mode: data.activeTender.mode })}">${esc(ui("comparePageTitle"))}</a>
+        </div>
+      </aside>
+    </section>
+  `);
+  document.querySelectorAll(".match-compare").forEach(button => button.addEventListener("click", () => addCompareLocal({
+    participantId: button.dataset.participant,
+    tenderId: data.activeTender.id,
+    projectId: data.activeTender.projectId,
+    mode: data.activeTender.mode
+  })));
+  document.querySelectorAll(".match-shortlist").forEach(button => button.addEventListener("click", async () => {
+    addShortlistLocal({
+      participantId: button.dataset.participant,
+      tenderId: data.activeTender.id,
+      projectId: data.activeTender.projectId,
+      mode: data.activeTender.mode
+    });
+    await postJson("/api/intent/shortlist", {
+      tenderId: data.activeTender.id,
+      participantId: button.dataset.participant,
+      projectId: data.activeTender.projectId,
+      mode: data.activeTender.mode,
+      note: currentLang === "zh" ? "保存到个人工作台 shortlist" : "Saved to personal shortlist"
+    });
+    renderWorkspaceTray();
+  }));
+  document.querySelectorAll(".remove-compare").forEach(button => button.addEventListener("click", () => {
+    removeCompareLocal(button.dataset.participant);
+    renderMatchV3();
+  }));
+  document.querySelectorAll(".remove-shortlist").forEach(button => button.addEventListener("click", () => {
+    removeShortlistLocal(button.dataset.participant, button.dataset.tender);
+    renderMatchV3();
+  }));
+}
+
+async function renderCompareV3() {
+  const workspace = readWorkspace();
+  const participantIds = currentParams.get("participantIds") || workspace.compare.map(item => item.participantId).join(",");
+  const data = await fetchJson(`/api/compare?${workspaceParams({
+    participantIds,
+    tenderId: currentParams.get("tenderId") || workspace.rfqDraft?.tenderId || "",
+    projectId: currentParams.get("projectId") || workspace.rfqDraft?.projectId || "",
+    mode: currentParams.get("mode") || workspace.rfqDraft?.mode || ""
+  }).toString()}`);
+  mount(`
+    ${sectionTitle("Workspace", ui("comparePageTitle"), (data.recommendedAction || {}).label || "")}
+    <section class="compare-page-grid">
+      ${data.items.length ? data.items.map(item => `
+        <article class="panel compare-card">
+          <div class="card-top">${pill(item.roleLabel)}${pill(String(item.score), "score")}</div>
+          <h3>${esc(item.company)}</h3>
+          <ul class="bullet-list">
+            <li><strong>Credentials:</strong> ${esc((item.certifications || []).join(", "))}</li>
+            <li><strong>Regions:</strong> ${esc((item.regions || []).join(", "))}</li>
+            <li><strong>Capacity:</strong> ${esc(item.capacity)}</li>
+            <li><strong>Lead time:</strong> ${esc(String(item.leadDays))} days</li>
+            <li><strong>Response:</strong> ${esc(String(item.responseHours))} hours</li>
+          </ul>
+          <div class="cta-row">
+            <a class="button ghost" href="${withLang(item.ctas.participantHref)}">${esc(ui("viewProfile"))}</a>
+            <button class="button soft compare-shortlist" data-participant="${esc(item.id)}">${esc(ui("addShortlist"))}</button>
+            <a class="button primary" href="${withLang("/rfq", { participantIds: item.id, tenderId: data.context.tenderId, projectId: data.context.projectId, mode: data.context.mode })}">${esc(ui("sendRfq"))}</a>
+            <a class="button ghost" href="${withLang(item.ctas.unlockHref)}">${esc(ui("unlockCasePack"))}</a>
+          </div>
+        </article>
+      `).join("") : `<section class="panel"><p>${esc(ui("workspaceEmpty"))}</p></section>`}
+    </section>
+  `);
+  document.querySelectorAll(".compare-shortlist").forEach(button => button.addEventListener("click", () => {
+    addShortlistLocal({
+      participantId: button.dataset.participant,
+      tenderId: data.context.tenderId,
+      projectId: data.context.projectId,
+      mode: data.context.mode
+    });
+  }));
+}
+
+function renderLeadSidebar(context, asset = null) {
+  return `
+    <aside class="panel sticky-card">
+      ${sectionTitle(ui("contextTitle"), ui("contextTitle"))}
+      <ul class="bullet-list">
+        ${context.projectName ? `<li><strong>Project:</strong> ${esc(context.projectName)}</li>` : ""}
+        ${context.opportunityTitle ? `<li><strong>Opportunity:</strong> ${esc(context.opportunityTitle)}</li>` : ""}
+        ${context.participantName ? `<li><strong>Participant:</strong> ${esc(context.participantName)}</li>` : ""}
+        ${context.mode ? `<li><strong>Mode:</strong> ${esc(context.mode)}</li>` : ""}
+      </ul>
+      ${context.selectedParticipants?.length ? `<div class="context-block"><h3>${esc(ui("selectedParticipants"))}</h3><div class="tag-cloud">${context.selectedParticipants.map(item => tag(item.name)).join("")}</div></div>` : ""}
+      ${asset ? `<div class="context-block"><h3>${esc(asset.title)}</h3><p>${esc(asset.description)}</p><ul class="bullet-list">${(asset.includes || []).map(line => `<li>${esc(line)}</li>`).join("")}</ul></div>` : ""}
+      ${context.recommendedAction?.label ? `<div class="context-block"><h3>${esc(ui("recommendedAction"))}</h3><p>${esc(context.recommendedAction.label)}</p></div>` : ""}
+    </aside>
+  `;
+}
+
+async function renderContactV3() {
+  const context = await fetchJson(`/api/lead-context?${workspaceParams(Object.fromEntries(currentParams.entries())).toString()}`);
+  mount(`
+    <section class="form-layout">
+      <section class="panel">
+        ${sectionTitle(ui("genericContact"), ui("contactTitle"), ui("contactIntro"))}
+        <form id="contact-form" class="lead-form">
+          <div class="field-grid">
+            <label><span>${esc(ui("formName"))}</span><input name="name" required /></label>
+            <label><span>${esc(ui("formCompany"))}</span><input name="company" required /></label>
+            <label><span>${esc(ui("formTitle"))}</span><input name="title" /></label>
+            <label><span>${esc(ui("formContact"))}</span><input name="contact" required /></label>
+          </div>
+          <div class="field-grid">
+            <label><span>${esc(ui("formProject"))}</span><input name="projectFocus" value="${esc(context.projectName || context.opportunityTitle || "")}" /></label>
+            <label><span>${esc(ui("formCooperation"))}</span><input name="cooperationType" value="${esc(context.mode || "")}" /></label>
+          </div>
+          <label><span>${esc(ui("formNote"))}</span><textarea name="note" rows="6"></textarea></label>
+          <button class="button primary" type="submit">${esc(ui("formSubmit"))}</button>
+          <p id="contact-form-feedback" class="form-feedback"></p>
+        </form>
+      </section>
+      ${renderLeadSidebar(context)}
+    </section>
+  `);
+  document.getElementById("contact-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const result = await postJson("/api/leads/contact", {
+      name: data.get("name"),
+      company: data.get("company"),
+      title: data.get("title"),
+      contact: data.get("contact"),
+      cooperationType: data.get("cooperationType"),
+      note: data.get("note"),
+      projectId: context.projectId,
+      tenderId: context.tenderId,
+      participantId: context.participantId,
+      mode: context.mode,
+      lang: currentLang
+    });
+    document.getElementById("contact-form-feedback").textContent = result.ok ? `${ui("leadSubmitted")} ${result.data.nextStep || ""}` : (result.data.error || "Request failed");
+  });
+}
+
+async function renderUnlockV3() {
+  const assetKey = currentParams.get("asset") || "";
+  const context = await fetchJson(`/api/lead-context?${workspaceParams(Object.fromEntries(currentParams.entries())).toString()}`);
+  const data = await fetchJson(`/api/site?${workspaceParams().toString()}`);
+  const asset = data.assets?.[assetKey] || null;
+  mount(`
+    <section class="form-layout">
+      <section class="panel">
+        ${sectionTitle(ui("unlockPageTitle"), ui("unlockPageTitle"), ui("unlockIntro"))}
+        <form id="unlock-form" class="lead-form">
+          <div class="field-grid">
+            <label><span>${esc(ui("formName"))}</span><input name="name" required /></label>
+            <label><span>${esc(ui("formCompany"))}</span><input name="company" required /></label>
+            <label><span>${esc(ui("formTitle"))}</span><input name="title" /></label>
+            <label><span>${esc(ui("formContact"))}</span><input name="contact" required /></label>
+          </div>
+          <label><span>${esc(ui("formNote"))}</span><textarea name="note" rows="6"></textarea></label>
+          <button class="button primary" type="submit">${esc(ui("unlockPack"))}</button>
+          <p id="unlock-form-feedback" class="form-feedback"></p>
+        </form>
+      </section>
+      ${renderLeadSidebar(context, asset)}
+    </section>
+  `);
+  document.getElementById("unlock-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const result = await postJson("/api/leads/unlock", {
+      asset: assetKey,
+      name: formData.get("name"),
+      company: formData.get("company"),
+      title: formData.get("title"),
+      contact: formData.get("contact"),
+      note: formData.get("note"),
+      projectId: context.projectId,
+      tenderId: context.tenderId,
+      participantId: context.participantId,
+      mode: context.mode,
+      lang: currentLang
+    });
+    document.getElementById("unlock-form-feedback").textContent = result.ok ? `${ui("unlockSubmitted")} ${result.data.nextStep || ""}` : (result.data.error || "Request failed");
+  });
+}
+
+async function renderRfqV3() {
+  const workspace = readWorkspace();
+  const participantIds = currentParams.get("participantIds") || workspace.compare.map(item => item.participantId).join(",");
+  const context = await fetchJson(`/api/lead-context?${workspaceParams({
+    ...Object.fromEntries(currentParams.entries()),
+    participantIds
+  }).toString()}`);
+  const draft = workspace.rfqDraft || {};
+  mount(`
+    <section class="form-layout">
+      <section class="panel">
+        ${sectionTitle("Workspace", ui("rfqTitle"), context.recommendedAction?.label || "")}
+        <form id="rfq-form" class="lead-form">
+          <div class="field-grid">
+            <label><span>${esc(ui("formName"))}</span><input name="name" required /></label>
+            <label><span>${esc(ui("formCompany"))}</span><input name="company" required /></label>
+            <label><span>${esc(ui("formTitle"))}</span><input name="title" /></label>
+            <label><span>${esc(ui("formContact"))}</span><input name="contact" required /></label>
+          </div>
+          <div class="field-grid">
+            <label>
+              <span>${esc(ui("formCooperation"))}</span>
+              <select name="inquiryType">${rfqTypeOptions().map(item => `<option value="${esc(item.value)}">${esc(item.label)}</option>`).join("")}</select>
+            </label>
+            <label><span>${esc(ui("targetTimeline"))}</span><input name="targetTimeline" value="${esc(draft.targetTimeline || "")}" /></label>
+          </div>
+          <label><span>${esc(ui("demandSummary"))}</span><textarea name="demandSummary" rows="5">${esc(draft.demandSummary || "")}</textarea></label>
+          <label><span>${esc(ui("formNote"))}</span><textarea name="note" rows="4">${esc(draft.note || "")}</textarea></label>
+          <button class="button primary" type="submit">${esc(ui("rfqSubmit"))}</button>
+          <p id="rfq-form-feedback" class="form-feedback"></p>
+        </form>
+      </section>
+      ${renderLeadSidebar(context)}
+    </section>
+  `);
+  const form = document.getElementById("rfq-form");
+  form.addEventListener("input", () => {
+    const formData = new FormData(form);
+    setRfqDraftLocal({
+      projectId: context.projectId,
+      tenderId: context.tenderId,
+      mode: context.mode,
+      participantIds,
+      targetTimeline: formData.get("targetTimeline"),
+      demandSummary: formData.get("demandSummary"),
+      note: formData.get("note")
+    });
+  });
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const result = await postJson("/api/leads/rfq", {
+      name: formData.get("name"),
+      company: formData.get("company"),
+      title: formData.get("title"),
+      contact: formData.get("contact"),
+      inquiryType: formData.get("inquiryType"),
+      demandSummary: formData.get("demandSummary"),
+      targetTimeline: formData.get("targetTimeline"),
+      note: formData.get("note"),
+      projectId: context.projectId,
+      tenderId: context.tenderId,
+      participantIds,
+      mode: context.mode,
+      lang: currentLang
+    });
+    if (!result.ok) {
+      document.getElementById("rfq-form-feedback").textContent = result.data.error || "Request failed";
+      return;
+    }
+    clearRfqDraftLocal();
+    window.location.href = withLang("/thank-you", {
+      rfqId: result.data.rfqId,
+      status: result.data.status,
+      type: formData.get("inquiryType"),
+      projectId: context.projectId,
+      tenderId: context.tenderId,
+      participantIds
+    });
+  });
+}
+
+async function renderThankYouV3() {
+  const context = await fetchJson(`/api/lead-context?${workspaceParams(Object.fromEntries(currentParams.entries())).toString()}`);
+  mount(`
+    <section class="panel success-card">
+      ${sectionTitle("Workspace", ui("thankYouTitle"), ui("thankYouText"))}
+      <div class="summary-grid">
+        <article class="summary-box"><span>ID</span><strong>${esc(currentParams.get("rfqId") || "-")}</strong></article>
+        <article class="summary-box"><span>Status</span><strong>${esc(currentParams.get("status") || "qualified")}</strong></article>
+        <article class="summary-box"><span>Type</span><strong>${esc(currentParams.get("type") || "-")}</strong></article>
+        <article class="summary-box"><span>${esc(ui("nextAction"))}</span><strong>${esc(context.nextStep || "-")}</strong></article>
+      </div>
+      <div class="cta-row">
+        <a class="button primary" href="${withLang("/opportunities")}">${esc(ui("ctaPrimary"))}</a>
+        <a class="button ghost" href="${withLang("/compare", { participantIds: currentParams.get("participantIds") || "" })}">${esc(ui("comparePageTitle"))}</a>
+        <a class="button soft" href="${withLang("/contact", { projectId: context.projectId, tenderId: context.tenderId, participantId: context.participantId, mode: context.mode })}">${esc(ui("genericContact"))}</a>
+      </div>
+    </section>
+  `);
+}
+
 async function boot() {
   await ensureSite();
   const activeMap = {
@@ -1589,6 +2380,9 @@ async function boot() {
     participants: "participants",
     participant: "participants",
     match: "match",
+    compare: "match",
+    rfq: "contact",
+    "thank-you": "contact",
     solutions: "solutions",
     "how-it-works": "how",
     contact: "contact",
@@ -1598,15 +2392,19 @@ async function boot() {
   setFooter();
 
   if (page === "home") await renderHomeV2();
-  if (page === "opportunities") await renderOpportunitiesV2();
-  if (page === "opportunity") await renderOpportunityV2();
-  if (page === "participants") await renderParticipantsV2();
-  if (page === "participant") await renderParticipantV2();
-  if (page === "match") await renderMatchV2();
+  if (page === "opportunities") await renderOpportunitiesV3();
+  if (page === "opportunity") await renderOpportunityV3();
+  if (page === "participants") await renderParticipantsV3();
+  if (page === "participant") await renderParticipantV3();
+  if (page === "match") await renderMatchV3();
+  if (page === "compare") await renderCompareV3();
+  if (page === "rfq") await renderRfqV3();
+  if (page === "thank-you") await renderThankYouV3();
   if (page === "solutions") await renderSolutions();
   if (page === "how-it-works") await renderHowItWorks();
-  if (page === "contact") await renderContactV2();
-  if (page === "unlock") await renderUnlockV2();
+  if (page === "contact") await renderContactV3();
+  if (page === "unlock") await renderUnlockV3();
+  renderWorkspaceTray();
 }
 
 window.addEventListener("DOMContentLoaded", () => {
