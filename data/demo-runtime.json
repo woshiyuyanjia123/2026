@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 6,
+  "schemaVersion": 7,
   "lastTenderId": "td-banten",
   "lastSupplierId": "sp-sunline",
   "shortlists": [
@@ -25,5 +25,8 @@
     }
   ],
   "contactLeads": [],
-  "unlockRequests": []
+  "unlockRequests": [],
+  "leadRecords": [],
+  "unlockRecords": [],
+  "compareSelections": []
 }

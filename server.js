@@ -10,7 +10,7 @@ const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = path.join(ROOT, "data");
 const SEED_FILE = path.join(DATA_DIR, "demo-seed.json");
 const RUNTIME_FILE = path.join(DATA_DIR, "demo-runtime.json");
-const SCHEMA_VERSION = 6;
+const SCHEMA_VERSION = 7;
 const COMPRESSIBLE_EXTENSIONS = new Set([".html", ".css", ".js", ".json", ".txt", ".svg"]);
 
 const MIME_TYPES = {
@@ -357,7 +357,10 @@ function normalizeRuntime(runtime, fallback) {
     lastSupplierId: runtime.lastSupplierId || fallback.lastSupplierId,
     shortlists: Array.isArray(runtime.shortlists) ? runtime.shortlists : clone(fallback.shortlists || []),
     contactLeads: Array.isArray(runtime.contactLeads) ? runtime.contactLeads : [],
-    unlockRequests: Array.isArray(runtime.unlockRequests) ? runtime.unlockRequests : []
+    unlockRequests: Array.isArray(runtime.unlockRequests) ? runtime.unlockRequests : [],
+    leadRecords: Array.isArray(runtime.leadRecords) ? runtime.leadRecords : [],
+    unlockRecords: Array.isArray(runtime.unlockRecords) ? runtime.unlockRecords : [],
+    compareSelections: Array.isArray(runtime.compareSelections) ? runtime.compareSelections : []
   };
 }
 
@@ -656,6 +659,23 @@ function localizeSupplier(supplier, lang) {
   };
 }
 
+function verificationLabel(lang, level = "standard") {
+  const labels = {
+    standard: lang === "zh" ? "已验证参与方" : "Verified participant",
+    owner: lang === "zh" ? "已验证项目方" : "Verified project owner",
+    investor: lang === "zh" ? "已验证投资机会" : "Verified investment opportunity"
+  };
+  return labels[level] || labels.standard;
+}
+
+function nextStepLabel(lang, type) {
+  const map = {
+    contact: lang === "zh" ? "顾问将在 1 个工作日内完成线索分发与初步联系。" : "A consultant will distribute and qualify this lead within one business day.",
+    unlock: lang === "zh" ? "资料申请已进入合规审核，审核通过后将由顾问发送材料。" : "The material request is now under compliance review and a consultant will share the pack after approval."
+  };
+  return map[type];
+}
+
 function normalizeRatio(score, max) {
   if (max <= 0) return 0;
   return Math.max(0, Math.min(1, score / max));
@@ -822,8 +842,46 @@ function buildSitePayload(lang) {
       subtitle: t(seedData.meta.platformSubtitle, lang)
     },
     hero: SITE_CONTENT.hero[lang],
+    kpis: [
+      {
+        value: "2",
+        label: lang === "zh" ? "主项目机会" : "Flagship opportunities"
+      },
+      {
+        value: "4",
+        label: lang === "zh" ? "重点中国参与方" : "China-side participants"
+      },
+      {
+        value: "3",
+        label: lang === "zh" ? "可解锁资料包" : "Unlockable packs"
+      },
+      {
+        value: "1",
+        label: lang === "zh" ? "统一询盘闭环" : "Unified inquiry funnel"
+      }
+    ],
     featuredProjects: opportunities,
     featuredParticipants: participants,
+    trustSignals: [
+      {
+        title: lang === "zh" ? "公开概览 + 深度解锁" : "Public summary plus gated unlock",
+        text: lang === "zh" ? "先公开展示可判断机会的核心信息，再通过表单承接完整底稿与深度联系人申请。" : "Show enough public information to qualify interest, then gate full packs and deeper contacts through forms."
+      },
+      {
+        title: lang === "zh" ? "验证标签" : "Verification signals",
+        text: lang === "zh" ? "通过验证标签、能力履历和区域经验，帮助买方快速筛掉不适配对象。" : "Use verification tags, delivery track record, and regional experience to accelerate supplier screening."
+      },
+      {
+        title: lang === "zh" ? "轻 CRM 分发" : "Light CRM distribution",
+        text: lang === "zh" ? "询盘、资料申请和 shortlist 都会沉淀为可分发线索，而不是停留在展示页。" : "Inquiries, unlock requests, and shortlist actions are converted into distributable lead records."
+      }
+    ],
+    resourcePacks: Object.entries(SITE_CONTENT.assets).map(([key, value]) => ({
+      key,
+      title: value[lang].title,
+      description: value[lang].description,
+      href: `/unlock?asset=${key}`
+    })),
     processSteps: SITE_CONTENT.processSteps[lang],
     faq: SITE_CONTENT.faq[lang],
     assets: Object.fromEntries(
@@ -1200,6 +1258,403 @@ function updateState(runtime, body) {
   writeRuntime(runtime);
 }
 
+function uniqueStrings(items) {
+  return [...new Set((items || []).filter(Boolean).map(item => String(item)))];
+}
+
+function buildOpportunitiesPayloadRich(params) {
+  const lang = pickLang(params.lang, "en");
+  const search = String(params.search || "").trim().toLowerCase();
+  const mode = params.mode || "";
+  const region = params.region || "";
+  const country = params.country || "";
+
+  const items = seedData.tenders
+    .map(tender => localizeTender(tender, lang))
+    .filter(item => {
+      if (mode && item.mode !== mode) return false;
+      if (region && item.regionKey !== region) return false;
+      if (country && item.countryKey !== country) return false;
+      if (!search) return true;
+      return [item.title, item.description, item.project?.name, item.ownerCompany?.name, item.country, item.region]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    })
+    .map(item => ({
+      ...item,
+      verified: true,
+      featured: ["td-banten", "td-dartz"].includes(item.id),
+      verification: verificationLabel(lang, item.mode === "investment" ? "investor" : "owner"),
+      tags: uniqueStrings([item.modeLabel, item.country, item.region, item.ownerCompany?.companyTypeLabel || item.buyerType]),
+      primaryCtas: {
+        inquiryHref: `/contact?tenderId=${item.id}&projectId=${item.projectId}&mode=${item.mode}`,
+        unlockHref: `/unlock?asset=${item.asset}&tenderId=${item.id}&projectId=${item.projectId}&mode=${item.mode}`,
+        matchHref: `/match?tenderId=${item.id}&mode=${item.mode}`
+      },
+      href: `/opportunities/${item.slug}`
+    }));
+
+  return {
+    lang,
+    hero: {
+      title: lang === "zh" ? "项目机会中心" : "Opportunity Center",
+      text: lang === "zh"
+        ? "把招标机会和投资合作机会统一放在一个正式列表里，让访客先看项目，再进入询盘、解锁和匹配动作。"
+        : "A release-grade listing for both tender and investment opportunities, designed to move visitors from project discovery into inquiry, unlock, and matching actions."
+    },
+    filters: {
+      search,
+      mode,
+      region,
+      country,
+      modes: [
+        { key: "", label: lang === "zh" ? "全部模式" : "All modes" },
+        { key: "tender", label: lang === "zh" ? "招标参与" : "Tender participation" },
+        { key: "investment", label: lang === "zh" ? "投资合作" : "Investment collaboration" }
+      ],
+      regions: [
+        { key: "", label: lang === "zh" ? "全部区域" : "All regions" },
+        ...seedData.africaRegions.map(item => ({ key: item.key, label: t(item.name, lang) }))
+      ],
+      countries: [
+        { key: "", label: lang === "zh" ? "全部国家" : "All countries" },
+        ...Object.entries(seedData.lookups.countries).map(([key, value]) => ({ key, label: t(value, lang) }))
+      ]
+    },
+    items
+  };
+}
+
+function buildOpportunityPayloadRich(params) {
+  const lang = pickLang(params.lang, "en");
+  const tenderId = opportunityBySlug[params.slug] || seedData.tenders[0].id;
+  const localized = localizeTender(tenderMap[tenderId], lang);
+  const previewMatches = buildMatches(tenderId, lang).slice(0, 3);
+  const asset = SITE_CONTENT.assets[localized.asset]?.[lang] || null;
+
+  return {
+    lang,
+    breadcrumb: [
+      { label: lang === "zh" ? "首页" : "Home", href: "/" },
+      { label: lang === "zh" ? "项目机会" : "Opportunities", href: "/opportunities" },
+      { label: localized.title, href: `/opportunities/${localized.slug}` }
+    ],
+    item: localized,
+    asset,
+    verification: verificationLabel(lang, localized.mode === "investment" ? "investor" : "owner"),
+    timeline: [
+      { label: lang === "zh" ? "项目周期" : "Project timeline", value: localized.project?.timeline || localized.deadline },
+      { label: lang === "zh" ? "截止时间" : "Deadline", value: localized.deadline },
+      { label: lang === "zh" ? "交付窗口" : "Execution window", value: `${localized.targetLeadDays} ${lang === "zh" ? "天" : "days"}` }
+    ],
+    relatedAssets: [
+      {
+        key: localized.asset,
+        title: asset?.title || localized.title,
+        description: asset?.description || localized.description,
+        href: `/unlock?asset=${localized.asset}&tenderId=${localized.id}&projectId=${localized.projectId}&mode=${localized.mode}`
+      }
+    ],
+    primaryCtas: {
+      inquiryHref: `/contact?tenderId=${localized.id}&projectId=${localized.projectId}&mode=${localized.mode}`,
+      unlockHref: `/unlock?asset=${localized.asset}&tenderId=${localized.id}&projectId=${localized.projectId}&mode=${localized.mode}`,
+      matchHref: `/match?tenderId=${localized.id}&mode=${localized.mode}`
+    },
+    participantPreview: previewMatches.map(match => ({
+      id: match.supplier.id,
+      slug: match.supplier.slug,
+      name: match.supplier.company,
+      roleLabel: match.supplier.roleLabel,
+      score: match.score.totalScore,
+      teaser: match.score.reasons.slice(0, 2),
+      href: `/participants/${match.supplier.slug}`
+    })),
+    ctas: {
+      matchHref: `/match?tenderId=${localized.id}&mode=${localized.mode}`,
+      unlockHref: `/unlock?asset=${localized.asset}&tenderId=${localized.id}&projectId=${localized.projectId}&mode=${localized.mode}`,
+      contactHref: `/contact?tenderId=${localized.id}&projectId=${localized.projectId}&mode=${localized.mode}`
+    }
+  };
+}
+
+function buildParticipantsPayloadRich(params) {
+  const lang = pickLang(params.lang, "zh");
+  const search = String(params.search || "").trim().toLowerCase();
+  const role = params.role || "";
+  const sector = params.sector || "";
+  const certification = params.certification || "";
+  const readiness = params.readiness || "";
+
+  const items = seedData.suppliers
+    .map(supplier => localizeSupplier(supplier, lang))
+    .filter(item => {
+      if (role && item.roleType !== role) return false;
+      if (sector && !(item.sectorKeys || []).includes(sector)) return false;
+      if (certification && !(item.certifications || []).includes(certification)) return false;
+      if (readiness && !(item.verifiedTagKeys || []).includes(readiness)) return false;
+      if (!search) return true;
+      return [item.company, item.productFocus, item.companyProfile?.summary, ...(item.certifications || []), ...(item.verifiedTags || [])]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
+    })
+    .map(item => ({
+      ...item,
+      verification: verificationLabel(lang, "standard"),
+      roleTags: uniqueStrings([item.roleLabel, ...(item.verifiedTags || [])]),
+      compareReady: true,
+      primaryCtas: {
+        inquiryHref: `/contact?participantId=${item.id}`,
+        unlockHref: `/unlock?asset=${item.asset}&participantId=${item.id}`,
+        matchHref: `/match?participantId=${item.id}`
+      },
+      href: `/participants/${item.slug}`
+    }));
+
+  const allCertifications = uniqueStrings(seedData.suppliers.flatMap(item => item.certifications || []));
+
+  return {
+    lang,
+    hero: {
+      title: lang === "zh" ? "中国参与方中心" : "China-side Participant Center",
+      text: lang === "zh"
+        ? "把 EPC、电力、算力基础设施和生态合作方组织成正式的参与方发现中心，并配套筛选、对比和询盘动作。"
+        : "Organize EPC, power, compute infrastructure, and ecosystem collaborators into a searchable participant discovery center."
+    },
+    filters: {
+      search,
+      role,
+      sector,
+      certification,
+      readiness,
+      roles: [
+        { key: "", label: lang === "zh" ? "全部角色" : "All roles" },
+        ...Object.entries(seedData.lookups.roleTypes).map(([key, value]) => ({ key, label: t(value, lang) }))
+      ],
+      sectors: [
+        { key: "", label: lang === "zh" ? "全部赛道" : "All sectors" },
+        ...Object.entries(seedData.lookups.sectors).map(([key, value]) => ({ key, label: t(value, lang) }))
+      ],
+      certifications: [
+        { key: "", label: lang === "zh" ? "全部资质" : "All certifications" },
+        ...allCertifications.map(value => ({ key: value, label: value }))
+      ],
+      readinessOptions: [
+        { key: "", label: lang === "zh" ? "全部就绪度" : "All readiness" },
+        ...Object.entries(seedData.lookups.verifiedTags).map(([key, value]) => ({ key, label: t(value, lang) }))
+      ]
+    },
+    items
+  };
+}
+
+function buildParticipantPayloadRich(params) {
+  const lang = pickLang(params.lang, "zh");
+  const supplierId = participantBySlug[params.slug] || seedData.suppliers[0].id;
+  const item = localizeSupplier(supplierMap[supplierId], lang);
+  const opportunities = buildSupplierOpportunityMatches(supplierId, lang).slice(0, 4).map(entry => ({
+    id: entry.opportunity.id,
+    slug: entry.opportunity.slug,
+    title: entry.opportunity.title,
+    projectName: entry.opportunity.project?.name || entry.opportunity.title,
+    mode: entry.opportunity.mode,
+    modeLabel: entry.opportunity.modeLabel,
+    score: entry.score.totalScore,
+    reasons: entry.score.reasons.slice(0, 2),
+    href: `/opportunities/${entry.opportunity.slug}`
+  }));
+  const asset = SITE_CONTENT.assets[item.asset]?.[lang] || SITE_CONTENT.assets["participant-case-pack"][lang];
+
+  return {
+    lang,
+    breadcrumb: [
+      { label: lang === "zh" ? "首页" : "Home", href: "/" },
+      { label: lang === "zh" ? "中国参与方" : "Participants", href: "/participants" },
+      { label: item.company, href: `/participants/${item.slug}` }
+    ],
+    item,
+    asset,
+    verification: verificationLabel(lang, "standard"),
+    capabilityBlocks: [
+      {
+        title: lang === "zh" ? "认证与验证" : "Certification and verification",
+        items: uniqueStrings([...(item.certifications || []), ...(item.verifiedTags || [])])
+      },
+      {
+        title: lang === "zh" ? "交付与区域能力" : "Delivery and regional reach",
+        items: uniqueStrings([
+          `${item.monthlyCapacity}/month`,
+          `${item.leadDays} ${lang === "zh" ? "天交付" : "day lead time"}`,
+          ...(item.africaMarkets || []),
+          ...(item.africaRegions || [])
+        ])
+      }
+    ],
+    opportunities,
+    primaryCtas: {
+      inquiryHref: `/contact?participantId=${item.id}`,
+      unlockHref: `/unlock?asset=${item.asset}&participantId=${item.id}`,
+      matchHref: `/match?participantId=${item.id}`
+    },
+    ctas: {
+      matchHref: `/match?participantId=${item.id}`,
+      contactHref: `/contact?participantId=${item.id}`,
+      unlockHref: `/unlock?asset=${item.asset}&participantId=${item.id}`
+    }
+  };
+}
+
+function buildComparePayload(params, runtime) {
+  const lang = pickLang(params.lang, "en");
+  const compareItems = (runtime.compareSelections || [])
+    .map(item => {
+      const supplier = supplierMap[item.supplierId];
+      if (!supplier) return null;
+      const localized = localizeSupplier(supplier, lang);
+      const tender = item.tenderId ? tenderMap[item.tenderId] : null;
+      const score = tender ? computeMatch(tender, supplier, lang) : null;
+      return {
+        id: localized.id,
+        slug: localized.slug,
+        company: localized.company,
+        roleLabel: localized.roleLabel,
+        verification: verificationLabel(lang, "standard"),
+        certifications: localized.certifications,
+        regions: localized.africaRegions,
+        readiness: localized.verifiedTags,
+        capacity: `${localized.monthlyCapacity}/month`,
+        leadDays: localized.leadDays,
+        responseHours: localized.responseHours,
+        score: score?.totalScore || item.score || 0,
+        compareFor: tender ? t(tender.title, lang) : "",
+        ctas: {
+          contactHref: `/contact?participantId=${localized.id}${item.projectId ? `&projectId=${item.projectId}` : ""}${item.tenderId ? `&tenderId=${item.tenderId}` : ""}${item.mode ? `&mode=${item.mode}` : ""}`,
+          unlockHref: `/unlock?asset=${localized.asset}&participantId=${localized.id}${item.projectId ? `&projectId=${item.projectId}` : ""}${item.tenderId ? `&tenderId=${item.tenderId}` : ""}${item.mode ? `&mode=${item.mode}` : ""}`,
+          participantHref: `/participants/${localized.slug}`
+        }
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return {
+    lang,
+    items: compareItems,
+    dimensions: [
+      lang === "zh" ? "角色适配" : "Role fit",
+      lang === "zh" ? "资质与验证" : "Credentials",
+      lang === "zh" ? "交付能力" : "Delivery capacity",
+      lang === "zh" ? "区域经验" : "Regional coverage",
+      lang === "zh" ? "响应准备度" : "Response readiness"
+    ]
+  };
+}
+
+function buildMatchPayloadRich(params, runtime) {
+  const base = buildMatchPayload(params, runtime);
+  const compareItems = (runtime.compareSelections || [])
+    .map(item => {
+      const supplier = supplierMap[item.supplierId];
+      if (!supplier) return null;
+      const localized = localizeSupplier(supplier, base.lang);
+      return {
+        id: localized.id,
+        slug: localized.slug,
+        name: localized.company,
+        roleLabel: localized.roleLabel,
+        score: item.score || 0,
+        href: `/participants/${localized.slug}`
+      };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return {
+    ...base,
+    compareCandidates: compareItems,
+    nextActions: [
+      {
+        label: base.lang === "zh" ? "提交合作意向" : "Submit cooperation inquiry",
+        href: `/contact?tenderId=${base.activeTender.id}&projectId=${base.activeTender.projectId}&mode=${base.activeTender.mode}${base.selectedParticipant ? `&participantId=${base.selectedParticipant.id}` : ""}`
+      },
+      {
+        label: base.lang === "zh" ? "申请完整资料" : "Unlock full pack",
+        href: `/unlock?asset=${base.activeTender.asset}&tenderId=${base.activeTender.id}&projectId=${base.activeTender.projectId}&mode=${base.activeTender.mode}${base.selectedParticipant ? `&participantId=${base.selectedParticipant.id}` : ""}`
+      }
+    ]
+  };
+}
+
+function buildLeadContextPayload(params, runtime) {
+  const lang = pickLang(params.lang, "zh");
+  const context = buildContactContext(params, lang);
+  const comparePayload = buildComparePayload(params, runtime);
+  return {
+    ...context,
+    compare: comparePayload.items,
+    nextStep: context.participantId ? nextStepLabel(lang, "contact") : nextStepLabel(lang, "unlock")
+  };
+}
+
+function appendCompareSelection(runtime, body) {
+  const tender = body.tenderId ? tenderMap[body.tenderId] : null;
+  const supplier = supplierMap[body.participantId || body.supplierId];
+  if (!supplier) throw new Error("Participant not found");
+  const score = tender ? computeMatch(tender, supplier, "en").totalScore : 0;
+  const record = {
+    id: `cmp-${Date.now()}`,
+    tenderId: tender?.id || "",
+    supplierId: supplier.id,
+    projectId: body.projectId || tender?.projectId || "",
+    mode: body.mode || tender?.mode || "",
+    score,
+    createdAt: new Date().toISOString()
+  };
+  runtime.compareSelections = [record, ...(runtime.compareSelections || []).filter(item => item.supplierId !== supplier.id)].slice(0, 3);
+  writeRuntime(runtime);
+  return record;
+}
+
+function appendContactLeadRich(runtime, body) {
+  const record = appendContactLead(runtime, body);
+  const leadRecord = {
+    id: record.id,
+    type: body.participantId ? "participant_inquiry" : "project_inquiry",
+    status: "new",
+    nextStep: nextStepLabel(pickLang(body.lang, "zh"), "contact"),
+    projectId: record.projectId,
+    tenderId: record.tenderId,
+    participantId: record.participantId,
+    createdAt: record.createdAt
+  };
+  runtime.leadRecords.unshift(leadRecord);
+  runtime.leadRecords = runtime.leadRecords.slice(0, 100);
+  writeRuntime(runtime);
+  return { ...record, status: leadRecord.status, nextStep: leadRecord.nextStep };
+}
+
+function appendUnlockRequestRich(runtime, body) {
+  const record = appendUnlockRequest(runtime, body);
+  const unlockRecord = {
+    id: record.id,
+    type: "unlock_request",
+    status: "qualified",
+    nextStep: nextStepLabel(pickLang(body.lang, "zh"), "unlock"),
+    asset: record.asset,
+    projectId: record.projectId,
+    tenderId: record.tenderId,
+    participantId: record.participantId,
+    createdAt: record.createdAt
+  };
+  runtime.unlockRecords.unshift(unlockRecord);
+  runtime.unlockRecords = runtime.unlockRecords.slice(0, 100);
+  writeRuntime(runtime);
+  return { ...record, status: unlockRecord.status, nextStep: unlockRecord.nextStep };
+}
+
 function resolvePublicFile(pathname) {
   const relativePath = path.normalize(pathname.replace(/^\/+/, ""));
   const filePath = path.join(PUBLIC_DIR, relativePath);
@@ -1239,27 +1694,27 @@ function requestHandler(req, res) {
   }
 
   if (pathname === "/api/opportunities" && req.method === "GET") {
-    sendJson(req, res, 200, buildOpportunitiesPayload(params));
+    sendJson(req, res, 200, buildOpportunitiesPayloadRich(params));
     return;
   }
 
   if (pathname === "/api/opportunity" && req.method === "GET") {
-    sendJson(req, res, 200, buildOpportunityPayload(params));
+    sendJson(req, res, 200, buildOpportunityPayloadRich(params));
     return;
   }
 
   if (pathname === "/api/participants" && req.method === "GET") {
-    sendJson(req, res, 200, buildParticipantsPayload(params));
+    sendJson(req, res, 200, buildParticipantsPayloadRich(params));
     return;
   }
 
   if (pathname === "/api/participant" && req.method === "GET") {
-    sendJson(req, res, 200, buildParticipantPayload(params));
+    sendJson(req, res, 200, buildParticipantPayloadRich(params));
     return;
   }
 
   if (pathname === "/api/match" && req.method === "GET") {
-    sendJson(req, res, 200, buildMatchPayload(params, runtime));
+    sendJson(req, res, 200, buildMatchPayloadRich(params, runtime));
     return;
   }
 
@@ -1268,8 +1723,13 @@ function requestHandler(req, res) {
     return;
   }
 
-  if (pathname === "/api/contact-context" && req.method === "GET") {
-    sendJson(req, res, 200, buildContactContext(params, pickLang(params.lang, "zh")));
+  if ((pathname === "/api/contact-context" || pathname === "/api/lead-context") && req.method === "GET") {
+    sendJson(req, res, 200, buildLeadContextPayload(params, runtime));
+    return;
+  }
+
+  if (pathname === "/api/compare" && req.method === "GET") {
+    sendJson(req, res, 200, buildComparePayload(params, runtime));
     return;
   }
 
@@ -1280,10 +1740,13 @@ function requestHandler(req, res) {
           sendJson(req, res, 400, { error: "Missing contact lead fields" });
           return;
         }
-        const record = appendContactLead(runtime, body);
+        const record = appendContactLeadRich(runtime, body);
         sendJson(req, res, 201, {
           ok: true,
           record,
+          leadId: record.id,
+          status: record.status,
+          nextStep: record.nextStep,
           message: pickLang(body.lang, "zh") === "zh"
             ? "合作意向已提交，顾问将在后续对接。"
             : "Your cooperation request has been submitted. A consultant will follow up."
@@ -1303,10 +1766,13 @@ function requestHandler(req, res) {
           sendJson(req, res, 400, { error: "Missing unlock request fields" });
           return;
         }
-        const record = appendUnlockRequest(runtime, body);
+        const record = appendUnlockRequestRich(runtime, body);
         sendJson(req, res, 201, {
           ok: true,
           record,
+          requestId: record.id,
+          status: record.status,
+          nextStep: record.nextStep,
           message: pickLang(body.lang, "zh") === "zh"
             ? "资料申请已提交，顾问将在后续对接。"
             : "Your material request has been submitted. A consultant will follow up."
@@ -1331,6 +1797,27 @@ function requestHandler(req, res) {
       })
       .catch(error => {
         console.error("[api] shortlist failed", error);
+        sendJson(req, res, 400, { error: error.message });
+      });
+    return;
+  }
+
+  if (pathname === "/api/intent/compare" && req.method === "POST") {
+    parseBody(req)
+      .then(body => {
+        if (!(body.participantId || body.supplierId)) {
+          sendJson(req, res, 400, { error: "Missing participantId" });
+          return;
+        }
+        const record = appendCompareSelection(runtime, body);
+        sendJson(req, res, 201, {
+          ok: true,
+          record,
+          compare: buildComparePayload(params, runtime)
+        });
+      })
+      .catch(error => {
+        console.error("[api] compare failed", error);
         sendJson(req, res, 400, { error: error.message });
       });
     return;
